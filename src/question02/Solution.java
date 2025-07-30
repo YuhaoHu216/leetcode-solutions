@@ -14,6 +14,8 @@ import java.util.List;
  * 在 strs 中没有字符串可以通过重新排列来形成 "bat"。
  * 字符串 "nat" 和 "tan" 是字母异位词，因为它们可以重新排列以形成彼此。
  * 字符串 "ate" ，"eat" 和 "tea" 是字母异位词，因为它们可以重新排列以形成彼此。
+ *
+ * tags:哈希表
  */
 public class Solution {
     public List<List<String>> groupAnagrams(String[] strs){

@@ -9,6 +9,7 @@ import java.util.Arrays;
  * 示例 1:
  * 输入: nums = [0,1,0,3,12]
  * 输出: [1,3,12,0,0]
+ * tags:双指针
  */
 class Solution {
     public void moveZeroes(int[] nums) {

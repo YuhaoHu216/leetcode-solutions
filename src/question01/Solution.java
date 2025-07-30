@@ -14,6 +14,7 @@ import java.util.HashMap;
  * 输出：[0,1]
  * 解释：因为 nums[0] + nums[1] == 9 ，返回 [0, 1] 。
  *
+ * tags: 哈希表
  */
 public class Solution {
     public int[] towSum(int [] nums,int target){
