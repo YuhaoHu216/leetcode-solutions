@@ -25,10 +25,8 @@ class Solution {
         System.out.println(Arrays.toString(nums));
     }
 
-}
-
-class Main{
     public static void main(String[] args) {
         new Solution().moveZeroes(new int[]{0,1,0,3,12});
     }
+
 }
