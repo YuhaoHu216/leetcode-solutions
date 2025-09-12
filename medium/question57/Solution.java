@@ -20,7 +20,7 @@ class Solution {
         int index = 0;                              // 表示当前处理到digits的第几位
 
         // 空指针防御
-        if(digits == null || digits.length() == 0){
+        if(digits.isEmpty()){
             return new ArrayList<String>();
         }
         backTracking(result,str,index,digits);
