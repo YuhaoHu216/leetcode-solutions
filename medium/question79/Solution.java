@@ -1,4 +1,4 @@
-package question78.question79;
+package question79;
 
 /**
  * 跳跃游戏II
