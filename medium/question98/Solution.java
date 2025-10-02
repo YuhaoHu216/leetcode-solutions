@@ -1,4 +1,4 @@
-package question96;
+package question98;
 
 /**
  * 颜色分类
