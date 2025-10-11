@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.List;
 
 /**
+ * 49.字母异位词分组
  * 给你一个字符串数组，请你将 字母异位词 组合在一起。可以按任意顺序返回结果列表。
  * 示例 1:
  * 输入: strs = ["eat", "tea", "tan", "ate", "nat", "bat"]
@@ -14,7 +15,6 @@ import java.util.List;
  * 在 strs 中没有字符串可以通过重新排列来形成 "bat"。
  * 字符串 "nat" 和 "tan" 是字母异位词，因为它们可以重新排列以形成彼此。
  * 字符串 "ate" ，"eat" 和 "tea" 是字母异位词，因为它们可以重新排列以形成彼此。
- *
  * tags:哈希表
  */
 public class Solution {
