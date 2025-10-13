@@ -2,6 +2,9 @@ package question18;
 
 import java.util.Arrays;
 
+/**
+ * 73.矩阵置零
+ */
 public class Solution {
     public void setZeroes(int[][] matrix) {
         int m = matrix.length;  // 行数,y

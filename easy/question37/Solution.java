@@ -3,6 +3,9 @@ package question37;
 import java.util.LinkedList;
 import java.util.Queue;
 
+/**
+ * 104.二叉树的最大深度
+ */
 public class Solution {
     public int maxDepth(TreeNode root) {
         if(root == null){

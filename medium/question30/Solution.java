@@ -1,5 +1,8 @@
 package question30;
 
+/**
+ * 24.两两交换链表中的节点
+ */
 public class Solution {
     public ListNode swapPairs(ListNode head) {
         ListNode first = new ListNode(-1,head);
