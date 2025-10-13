@@ -3,7 +3,7 @@ package question70;
 import java.util.LinkedList;
 
 /**
- * 最小栈
+ * 155. 最小栈
  * 设计一个支持 push ，pop ，top 操作，并能在常数时间内检索到最小元素的栈。
  * 实现 MinStack 类:
  * MinStack() 初始化堆栈对象。

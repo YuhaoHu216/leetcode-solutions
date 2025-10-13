@@ -14,6 +14,9 @@ class TreeNode {
     TreeNode(int x) { val = x; }
 }
 
+/**
+ * 236. 二叉树的最近公共祖先
+ */
 class Solution {
     public TreeNode lowestCommonAncestor(TreeNode root, TreeNode p, TreeNode q) {
         if(root == p || root == q || root == null) return root;

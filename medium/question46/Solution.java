@@ -23,6 +23,9 @@ class TreeNode {
     }
 }
 
+/**
+ * 114. 二叉树展开为链表
+ */
 class Solution {
     public void flatten(TreeNode root) {
         List<TreeNode> list = new ArrayList<>();

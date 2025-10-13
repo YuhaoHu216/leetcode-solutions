@@ -3,6 +3,10 @@ package question39;
 import java.util.LinkedList;
 import java.util.Queue;
 
+/**
+ * 101. 对称二叉树
+ */
+
 public class Solution {
     public boolean isSymmetric(TreeNode root) {
         Queue<TreeNode> queue = new LinkedList<>();
