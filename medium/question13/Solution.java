@@ -9,13 +9,22 @@ package question13;
  * 输出：6
  * 解释：连续子数组 [4,-1,2,1] 的和最大，为 6 。
  */
-public class Solution {
+class Solution {
     public int maxSubArray(int[] nums) {
-        int currentSum = nums[0];
+        /**
+         currentMaxSum：以当前元素 nums[i] 结尾的最大子数组和
+         max：遍历到目前为止的全局最大子数组和
+         */
+        int currentMaxSum = nums[0];
         int max = nums[0];
-        for(int i = 1;i < nums.length;i++){
-            currentSum = Math.max(nums[i],nums[i] + currentSum);
-            max = Math.max(currentSum,max);
+        for(int i = 1; i < nums.length; i++){
+            /**
+             对于每一个元素 nums[i]，有两种情况：
+             单独成为新的子数组的开始（前面的和是负数，不如重新开始）
+             延续前一个子数组（之前的和是正的，可以让整体更大）
+             */
+            currentMaxSum = Math.max(nums[i],currentMaxSum + nums[i]);
+            max = Math.max(max,currentMaxSum);
         }
         return max;
     }
@@ -25,3 +34,5 @@ public class Solution {
         System.out.println(new Solution().maxSubArray(nums));
     }
 }
+
+
