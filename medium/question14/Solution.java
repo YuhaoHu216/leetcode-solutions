@@ -6,6 +6,7 @@ package question14;
  * 输入：intervals = [[1,3],[2,6],[8,10],[15,18]]
  * 输出：[[1,6],[8,10],[15,18]]
  * 解释：区间 [1,3] 和 [2,6] 重叠, 将它们合并为 [1,6].
+ *
  */
 
 import java.util.ArrayList;
@@ -13,21 +14,30 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 
-public class Solution {
+class Solution {
     public int[][] merge(int[][] intervals) {
-//        Arrays.sort(intervals, Comparator.comparingInt(a -> a[0]));  // 更正规的排序写法
-        Arrays.sort(intervals, (a,b) -> a[0] - b[0]);
-        ArrayList<int[]> result = new ArrayList<>();
-        for(int[] i : intervals){
-            int size = result.size();
-            if(result.isEmpty() || result.get(size-1)[1] < i[0]){
-                result.add(i);
+        // 表示已经合并好的区间
+        List<int[]> result = new ArrayList<>();
+        // 排序数组,方便看有没有重叠(注意函数用法)
+        Arrays.sort(intervals,(a,b) -> a[0] - b[0]);
+        // 表示正在处理的区间
+        int[] temp = intervals[0];
+        // res.add(current) 先添加第一个区间，是为了保证结果列表至少有一个区间可供后续合并修改。
+        // 后续合并时会直接更新 current 的右边界，结果列表同步更新。
+        result.add(temp);
+        for(int[] interval : intervals){
+            if(interval[0] <= temp[1]){
+                temp[1] = Math.max(interval[1],temp[1]);
             }else{
-                result.get(size -1)[1] = Math.max(result.get(size-1)[1],i[1]);
+                temp = interval;
+                result.add(temp);
             }
         }
+        // 将集合转换为数组(注意函数用法)
         return result.toArray(new int[result.size()][]);
+
     }
+
 
     public static void main(String[] args) {
         int[][] intervals = {{1,3},{2,6},{8,10},{15,18}} ;
