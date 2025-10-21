@@ -14,18 +14,22 @@ import java.util.Arrays;
  */
 public class Solution {
     public int[] productExceptSelf(int[] nums) {
-        int length = nums.length;
-        int[] answer = new int[length];
-        answer[0] = 1;
-        for (int i = 1; i < nums.length; i++) {
-            answer[i] = nums[i - 1] * answer[i - 1];
+        // 思路:计算每个元素左边的所有数乘积和右边所有数乘积
+        int n = nums.length;
+        int[] result = new int[n];
+        // 计算每一个数左边的乘积
+        result[0] = 1;
+        for(int i = 1; i < n; i++){
+            result[i] = result[i-1] * nums[i-1];
         }
+        // 计算每个数右边的乘积并且相乘得到答案
         int right = 1;
-        for (int i = length - 1; i >= 0; i--) {
-            answer[i] *= right;
-            right *= nums[i];
+        for(int i = n - 1; i >=0; i--){
+            result[i] *= right;
+            right *= nums[i];   // 更新right的值
         }
-        return answer;
+
+        return result;
     }
 
     public static void main(String[] args) {
