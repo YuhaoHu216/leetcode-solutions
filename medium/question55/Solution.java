@@ -18,10 +18,14 @@ import java.util.List;
  */
 class Solution {
     public List<List<Integer>> permute(int[] nums) {
+
         List<List<Integer>> result = new ArrayList<>();
-        List<Integer> cur = new ArrayList<>();
-        boolean[] visited = new boolean[nums.length];
+        List<Integer> cur = new ArrayList<>();     // 当前正在构造的一种全排列
+        boolean[] visited = new boolean[nums.length];   // 用来标记该数字在全排列中是否用过
+
+        // 深度优先搜索和回溯
         dfs(result,cur,visited,nums);
+
         return result;
     }
 
@@ -29,17 +33,19 @@ class Solution {
 
         // 终止条件
         if(cur.size() == nums.length){
+            // 注意这里是new一个新的集合,不然的话后续对cur的修改都是在result里的cur的修改
             result.add(new ArrayList<>(cur));
             return;
         }
 
-        // 开始回溯
+        // 以每个数字为头进行全排列
         for(int i = 0; i < nums.length; i++){
+            // 如果当前数字未被用过
             if(!visited[i]){
                 visited[i] = true;
                 cur.add(nums[i]);
                 dfs(result,cur,visited,nums);
-                cur.remove(cur.size()-1);
+                cur.remove(cur.size() - 1);
                 visited[i] = false;
             }
         }
