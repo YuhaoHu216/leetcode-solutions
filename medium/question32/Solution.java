@@ -14,32 +14,40 @@ package question32;
  * 输入：head = [[7,null],[13,0],[11,4],[10,2],[1,0]]
  * 输出：[[7,null],[13,0],[11,4],[10,2],[1,0]]
  */
-public class Solution {
+class Solution {
     public Node copyRandomList(Node head) {
+
         if(head == null){
             return head;
         }
 
-        for(Node cur = head;cur != null;cur = cur.next.next){
-            cur.next = new Node(cur.val,cur.next);
+        // 1.复制每一个节点,并且插入到原节点后
+        for (Node cur = head; cur != null; cur = cur.next.next) {
+            Node copy = new Node(cur.val);
+            copy.next = cur.next;
+            cur.next = copy;
         }
 
-        for(Node cur = head;cur != null;cur = cur.next.next){
-            if(cur.random != null){
+        // 2.给每个新节点的random指定值
+        for (Node cur = head; cur != null; cur = cur.next.next) {
+            if (cur.random != null) {
+                // 因为将原链表复制了,所以新链表的random就是原链表random.next
                 cur.next.random = cur.random.next;
             }
         }
-
-        Node newNode = head.next;
+        // 3.将新的节点从原链表中拆分出来组成新链表
+        Node newHead = head.next;
         Node cur = head;
-        for(;cur.next.next != null;cur = cur.next){
-            Node temp = cur.next;
-            cur.next = temp.next;
-            temp.next = temp.next.next;
-
+        while (cur != null) {
+            Node copy = cur.next;
+            cur.next = copy.next;
+            if (copy.next != null) {
+                copy.next = copy.next.next;
+            }
+            cur = cur.next;
         }
-        cur.next = null;
-        return newNode;
+
+        return newHead;
     }
 }
 class Node {
