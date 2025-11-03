@@ -6,6 +6,7 @@ package question65;
  * 如果数组中不存在目标值 target，返回 [-1, -1]。
  * 你必须设计并实现时间复杂度为 O(log n) 的算法解决此问题。
  *
+ *
  */
 class Solution {
     public int[] searchRange(int[] nums, int target) {
