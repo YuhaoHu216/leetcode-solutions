@@ -13,6 +13,7 @@ package question63;
  * 示例 3:
  * 输入: nums = [1,3,5,6], target = 7
  * 输出: 4
+ *
  */
 public class Solution {
     public int searchInsert(int[] nums, int target) {
