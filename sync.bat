@@ -1,11 +1,11 @@
 @echo off
-echo 正在推送到 Gitee...
+echo is pushing to Gitee...
 git push gitee master
 
 echo.
-echo 正在推送到 GitHub...
+echo is pushing to GitHub...
 git push github master
 
 echo.
-echo 同步完成！
+echo ok
 pause
