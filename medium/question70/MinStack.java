@@ -11,6 +11,7 @@ import java.util.LinkedList;
  * void pop() 删除堆栈顶部的元素。
  * int top() 获取堆栈顶部的元素。
  * int getMin() 获取堆栈中的最小元素。
+ *
  */
 class MinStack {
 
