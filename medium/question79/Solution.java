@@ -28,3 +28,22 @@ class Solution {
         return result;
     }
 }
+class Solution2 {
+    public int jump(int[] nums) {
+        // 给每一个段设置一个终点,维护到右边的最大值
+        int end = 0;
+        int rightmost = 0;
+        int result = 0;
+        for(int i = 0; i < nums.length - 1; i++){
+            // 对每个数都跳一下取出最大范围
+            rightmost = Math.max(rightmost,nums[i] + i);
+            // 当i到了上一跳范围的末尾时,更新末尾值,并开始新的一步
+            if(i == end){
+                end = rightmost;
+                result++;
+            }
+        }
+        return result;
+    }
+}
+
