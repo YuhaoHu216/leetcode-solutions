@@ -17,11 +17,16 @@ import java.util.List;
 public class Solution {
     public List<List<Integer>> generate(int numRows) {
         List<List<Integer>> result = new ArrayList<>();
-        for(int i =0; i < numRows; i++){
+        // i表示要构造第几层
+        for(int i = 0; i < numRows; i++){
+            // 每一层用一个临时集合存储
             List<Integer> row = new ArrayList<>();
-            for(int j = 0; j <= i;j++){
-                if(j==0 || j==i){
+            // j表示该构造该层第几个元素(注意是<=)
+            for(int j = 0; j <= i; j++){
+                // 首尾两数是1
+                if(j == 0 || j == i ){
                     row.add(1);
+                    // 其他数是上一层的两数之和
                 }else{
                     int left = result.get(i-1).get(j-1);
                     int right = result.get(i-1).get(j);
