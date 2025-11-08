@@ -1,6 +1,8 @@
 package question08;
 
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -35,6 +37,29 @@ class Solution {
 
     public static void main(String[] args) {
         System.out.println(new Solution().lengthOfLongestSubstring("pwwkew"));
+    }
+}
+
+class Solution2 {
+    // HashMap O(n)解法
+    public int lengthOfLongestSubstring(String s) {
+        // 用一个map来存储每个字符及其上一次出现的位置
+        Map<Character, Integer> map = new HashMap<>();
+        int left = 0;
+        int maxLen = 0;
+
+        for (int right = 0; right < s.length(); right++) {
+            char c = s.charAt(right);
+            // 如果一个字符已经出现过就要考虑是否要把左指针移动到已经出现过的字符的右边
+            if (map.containsKey(c)) {
+                // 如果这个字母的上一次出现的位置左指针已经经过了,左指针就不变,要防止指针回退
+                left = Math.max(left, map.get(c) + 1);
+            }
+            map.put(c, right);
+            maxLen = Math.max(maxLen, right - left + 1);
+        }
+
+        return maxLen;
     }
 }
 
