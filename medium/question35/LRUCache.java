@@ -18,86 +18,91 @@ import java.util.Map;
  * 输出
  * [null, null, null, 1, null, -1, null, -1, 3, 4]
  */
-public class LRUCache {
-    class DLinkedNode {
-        int key;
-        int value;
-        DLinkedNode prev;
-        DLinkedNode next;
-        public DLinkedNode() {}
-        public DLinkedNode(int _key, int _value) {key = _key; value = _value;}
+class LRUCache {
+    // 底层是一个双向链表,最新操作过的数就排在链表最前面.
+    // 用一个hashmap来维护节点值和节点,两个哨兵节点来维护头尾
+
+    class Node {
+        int key, value; // key是数据在缓存中的唯一标识,value是对对应的数据
+        Node pre, next;
+        Node(int k,int v){key = k;value = v;}
     }
 
-    private Map<Integer, DLinkedNode> cache = new HashMap<Integer, DLinkedNode>();
-    private int size;
-    private int capacity;
-    private DLinkedNode head, tail;
+    Map<Integer,Node> map;  // 用于取键的map
+    Node head,tail;         // 伪节点用于界定头尾
+    int capacity;           // 初始化用的容量
 
     public LRUCache(int capacity) {
-        this.size = 0;
         this.capacity = capacity;
-        // 使用伪头部和伪尾部节点
-        head = new DLinkedNode();
-        tail = new DLinkedNode();
+        map = new HashMap<Integer,Node>();
+        head = new Node(0,0);
+        tail = new Node(0,0);
+        // 节点初始化要有指向
         head.next = tail;
-        tail.prev = head;
+        tail.pre = head;
     }
 
     public int get(int key) {
-        DLinkedNode node = cache.get(key);
-        if (node == null) {
-            return -1;
-        }
-        // 如果 key 存在，先通过哈希表定位，再移到头部
+        if(!map.containsKey(key)) return -1;
+        Node node = map.get(key);
+        // 将该节点置于伪头节点后
         moveToHead(node);
         return node.value;
     }
 
     public void put(int key, int value) {
-        DLinkedNode node = cache.get(key);
-        if (node == null) {
-            // 如果 key 不存在，创建一个新的节点
-            DLinkedNode newNode = new DLinkedNode(key, value);
-            // 添加进哈希表
-            cache.put(key, newNode);
-            // 添加至双向链表的头部
-            addToHead(newNode);
-            ++size;
-            if (size > capacity) {
-                // 如果超出容量，删除双向链表的尾部节点
-                DLinkedNode tail = removeTail();
-                // 删除哈希表中对应的项
-                cache.remove(tail.key);
-                --size;
-            }
-        }
-        else {
-            // 如果 key 存在，先通过哈希表定位，再修改 value，并移到头部
+        // 分两种情况,缓存里已有和没有
+        if(map.containsKey(key)){
+            // 如果缓存里已有数,就更新
+            Node node = map.get(key);
             node.value = value;
             moveToHead(node);
+        }else{
+            // 如果缓存里没有就新增(判断是否到容量)
+            Node node = new Node(key,value);
+            addToHead(node);    // 注意因为是新节点,所以用addToHead
+            map.put(key,node);
+            if(map.size() > capacity){
+                // 移出最末尾的数从链表到map
+                Node removeNode = removeTail();
+                map.remove(removeNode.key);
+            }
         }
     }
 
-    private void addToHead(DLinkedNode node) {
-        node.prev = head;
+    // 要用到的辅助函数
+    void moveToHead(Node node){
+        // 节点首先从原地方断开
+        node.pre.next = node.next;
+        node.next.pre = node.pre;
+        // 移动到伪头节点后
         node.next = head.next;
-        head.next.prev = node;
+        node.pre = head;
+        head.next.pre = node;
         head.next = node;
     }
 
-    private void removeNode(DLinkedNode node) {
-        node.prev.next = node.next;
-        node.next.prev = node.prev;
+    void addToHead(Node node){
+        // 移动到伪头节点后
+        node.next = head.next;
+        node.pre = head;
+        head.next.pre = node;
+        head.next = node;
     }
 
-    private void moveToHead(DLinkedNode node) {
-        removeNode(node);
-        addToHead(node);
-    }
+    Node removeTail(){
+        Node node = tail.pre;
+        // 节点首先从原地方断开
+        node.pre.next = node.next;
+        node.next.pre = node.pre;
 
-    private DLinkedNode removeTail() {
-        DLinkedNode res = tail.prev;
-        removeNode(res);
-        return res;
+        return node;
     }
 }
+
+/**
+ * Your LRUCache object will be instantiated and called as such:
+ * LRUCache obj = new LRUCache(capacity);
+ * int param_1 = obj.get(key);
+ * obj.put(key,value);
+ */
