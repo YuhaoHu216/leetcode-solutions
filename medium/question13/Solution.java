@@ -15,6 +15,7 @@ class Solution {
          currentMaxSum:以当前元素 nums[i] 结尾的最大子数组和
          max:遍历到目前为止的全局最大子数组和
          */
+        // 如果初始化为第一个数,那么遍历的时候就要从第二个数开始
         int currentMaxSum = nums[0];
         int max = nums[0];
         for(int i = 1; i < nums.length; i++){
