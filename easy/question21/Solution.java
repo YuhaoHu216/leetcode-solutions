@@ -21,6 +21,7 @@ class Solution {
         }
         pre.next = list1 == null ? list2 : list1;
         return first.next;
+
     }
 }
 
