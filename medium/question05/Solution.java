@@ -1,39 +1,42 @@
 package question05;
 
 /**
- * 11.盛最多水的容器
- * 给定一个长度为 n 的整数数组 height 。有 n 条垂线，第 i 条线的两个端点是 (i, 0) 和 (i, height[i]) 。
- * 找出其中的两条线，使得它们与 x 轴共同构成的容器可以容纳最多的水。
- * 返回容器可以储存的最大水量。
- * 说明：你不能倾斜容器。
- * 输入：[1,8,6,2,5,4,8,3,7]
- * 输出：49
- * 解释：图中垂直线代表输入数组 [1,8,6,2,5,4,8,3,7]。在此情况下，容器能够容纳水（表示为蓝色部分）的最大值为 49。
- */
+    * 5. 最长回文子串
+ 给你一个字符串 s，找到 s 中最长的 回文 子串。
+ 示例 1：
+ 输入：s = "babad"
+ 输出："bab"
+ 解释："aba" 同样是符合题意的答案。
+ 示例 2：
+ 输入：s = "cbbd"
+ 输出："bb" */
+// 中心扩展法
 class Solution {
-    public int maxArea(int[] height) {
-        int left = 0;
-        int right = height.length - 1;
-        int maxArea = 0;
-        while(left < right){
-            int minHeight = Math.min(height[left], height[right]);
-            int currentArea = minHeight * (right - left );
-            maxArea = Math.max(maxArea,currentArea);
-            if ((height[left] > height[right])) {
-                right--;
-            } else {
-                left++;
-            }
+    public String longestPalindrome(String s) {
 
+        int start = 0;
+        int maxLen = 0;
+
+
+        for(int i = 0; i < s.length(); i++){
+            int len1 = expandFromCenter(s,i,i);     // 回文串长度为奇数
+            int len2 = expandFromCenter(s,i,i+1);   // 回文串长度为偶数
+            int len = Math.max(len1,len2);
+
+            if(len > maxLen){
+                maxLen = len;
+                start = i - (maxLen-1) / 2;
+            }
         }
-        return maxArea;
+
+        return s.substring(start,start+maxLen);
     }
 
-    public static void main(String[] args) {
-        int[] height = {1,8,6,2,5,4,8,3,7};
-        Solution solution = new Solution();
-        int result = solution.maxArea(height);
-        System.out.println(result);
+    int expandFromCenter(String s,int left,int right){
+        while(left >=0 && right <s.length() && s.charAt(left) == s.charAt(right)){
+            left--;
+            right++;
+        }
+        return right-left-1;
     }
 }
-
