@@ -1,4 +1,4 @@
-package question41;
+package question102;
 
 /**
  * 102. 二叉树的层序遍历
@@ -28,7 +28,7 @@ class Solution {
     public List<List<Integer>> levelOrder(TreeNode root) {
         List<List<Integer>> result = new ArrayList<>();
         Queue<TreeNode> queue = new ArrayDeque<>();
-
+        // 注意空指针判断,队列中有null也不为空
         if(root != null){
             queue.add(root);
         }
