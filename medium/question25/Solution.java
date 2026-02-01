@@ -24,7 +24,7 @@ class Solution {
     public List<List<Integer>> threeSum(int[] nums) {
 
         List<List<Integer>> result = new ArrayList<>();
-
+        // 数组元素是基本类型时:双轴快速排序 引用类型:TimSort(基于归并和插入排序)
         Arrays.sort(nums);
 
         // 因为三元组不能重复,所以要避免之前的数参与后面的组合,这里的length-2是一个考量
