@@ -4,6 +4,9 @@ import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
+/**
+ * 多线程按顺序输出ABC
+ */
 public class PrintABC {
 
     private static int state = 0;
