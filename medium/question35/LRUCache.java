@@ -21,6 +21,7 @@ import java.util.Map;
 class LRUCache {
     // 底层是一个双向链表,最新操作过的数就排在链表最前面.
     // 用一个hashmap来维护节点值和节点,两个哨兵节点来维护头尾
+    // hashmap主要用于快速判断元素是否在缓存中 双向链表用于构建缓存的物理结构
 
     class Node {
         int key, value; // key是数据在缓存中的唯一标识,value是对对应的数据
