@@ -22,7 +22,7 @@ class Solution {
         ListNode dummy = new ListNode(0);
         dummy.next = head;
         // 用来记录每段链表的头尾
-        ListNode pre = dummy;  // 每段链表的前节点
+        ListNode pre = dummy;  // 每段链表的前一个节点
         ListNode end = dummy;
 
         while(true){
