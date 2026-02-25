@@ -17,6 +17,7 @@ class Solution {
                 pre.next = list2;
                 list2 = list2.next;
             }
+            // 注意这里移动节点
             pre = pre.next;
         }
         pre.next = list1 == null ? list2 : list1;
