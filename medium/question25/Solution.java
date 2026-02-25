@@ -17,7 +17,6 @@ import java.util.List;
  * nums[0] + nums[3] + nums[4] = (-1) + 2 + (-1) = 0 。
  * 不同的三元组是 [-1,0,1] 和 [-1,-1,2] 。
  * 注意，输出的顺序和三元组的顺序并不重要。
- *
  * tag:双指针
  */
 class Solution {
