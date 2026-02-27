@@ -15,8 +15,6 @@ class Solution {
     public boolean isValid(String s) {
         char[] str = s.toCharArray();
         LinkedList<Character> stack = new LinkedList<>();
-        if(str.length <= 1) return false;
-
         for(int i = 0; i < str.length; i++){
             if(str[i] == '(' || str[i] == '{' || str[i] == '['){
                 stack.push(str[i]);
