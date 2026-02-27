@@ -18,14 +18,14 @@ class Solution {
         // 如果初始化为第一个数,那么遍历的时候就要从第二个数开始
         int max = Integer.MIN_VALUE;
         int currentMaxSum = 0;
-        for(int i = 1; i < nums.length; i++){
+        for (int num : nums) {
             /*
              对于每一个元素 nums[i]，有两种情况：
              单独成为新的子数组的开始（前面的和是负数，不如重新开始）
              延续前一个子数组（之前的和是正的，可以让整体更大）
              */
-            currentMaxSum = Math.max(nums[i],currentMaxSum + nums[i]);
-            max = Math.max(max,currentMaxSum);
+            currentMaxSum = Math.max(num, currentMaxSum + num);
+            max = Math.max(max, currentMaxSum);
         }
         return max;
     }

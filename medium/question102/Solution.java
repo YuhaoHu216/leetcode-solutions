@@ -3,7 +3,6 @@ package question102;
 /**
  * 102. 二叉树的层序遍历
  * 给你二叉树的根节点 root ，返回其节点值的 层序遍历 。 （即逐层地，从左到右访问所有节点）。
- *
  */
 
 import java.util.ArrayDeque;
@@ -35,7 +34,7 @@ class Solution {
 
         while(!queue.isEmpty()){
             List<Integer> level = new ArrayList<>();
-            int n = queue.size();
+            int n = queue.size();  // 这里size必须在for循环外取值
             for(int i = 0; i < n; i++){
                 TreeNode node = queue.poll();
                 level.add(node.val);
