@@ -14,24 +14,16 @@ package question121;
  * 输入：prices = [7,6,4,3,1]
  * 输出：0
  * 解释：在这种情况下, 没有交易完成, 所以最大利润为 0。
- *
  */
 class Solution {
     public int maxProfit(int[] prices) {
-
-        int minPrice = Integer.MAX_VALUE;
-        int profit = 0;
-
+        int max = 0;
+        int min = Integer.MAX_VALUE; // 初始化为正无穷大
+        // 遍历每只股票的价格 维护最小价格和最大利润
         for(int i = 0; i < prices.length; i++){
-            // if(prices[i] < minPrice){
-            //     minPrice = prices[i];
-            // }else if(prices[i] - minPrice > p rofit){
-            //     profit = prices[i] - minPrice;
-            // }
-            minPrice = Math.min(minPrice,prices[i]);
-            profit = Math.max(profit,prices[i] - minPrice);
+            min = Math.min(prices[i],min);
+            max = Math.max(max,prices[i]-min);
         }
-
-        return profit;
+        return max;
     }
 }

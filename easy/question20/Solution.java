@@ -19,6 +19,7 @@ class Solution {
             if(str[i] == '(' || str[i] == '{' || str[i] == '['){
                 stack.push(str[i]);
             }else{
+                // 如果栈为空，则返回false
                 if(stack.isEmpty()) return false;
                 char left = stack.pop();
                 if(str[i] == ')' && left != '(') return false;
@@ -26,6 +27,7 @@ class Solution {
                 if(str[i] == '}' && left != '{') return false;
             }
         }
+        // 如果最后栈里剩下元素，则返回false
         if(!stack.isEmpty()) return false;
         return true;
     }
