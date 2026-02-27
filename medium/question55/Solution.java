@@ -15,6 +15,7 @@ import java.util.List;
  * 示例 3：
  * 输入：nums = [1]
  * 输出：[[1]]
+ *
  */
 class Solution {
     public List<List<Integer>> permute(int[] nums) {
@@ -37,7 +38,6 @@ class Solution {
             result.add(new ArrayList<>(cur));
             return;
         }
-
         // 以每个数字为头进行全排列
         for(int i = 0; i < nums.length; i++){
             // 如果当前数字未被用过

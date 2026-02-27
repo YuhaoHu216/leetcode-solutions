@@ -1,4 +1,4 @@
-package question88;
+package question152;
 
 /**
  * 152. 乘积最大子数组
