@@ -18,6 +18,7 @@ class TreeNode {
  * 236. 二叉树的最近公共祖先
  */
 class Solution {
+    // 一个后序遍历 先找左 再找右 最后处理中间节点 当左和右都找到了目标节点 说明当前节点刚好是分叉点
     public TreeNode lowestCommonAncestor(TreeNode root, TreeNode p, TreeNode q) {
         if(root == p || root == q || root == null) return root;
         TreeNode left =lowestCommonAncestor(root.left,p,q);
