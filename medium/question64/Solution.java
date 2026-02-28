@@ -1,30 +1,45 @@
 package question64;
 
 /**
- * 74. 搜索二维矩阵
- * 给你一个满足下述两条属性的 m x n 整数矩阵：
- * 每行中的整数从左到右按非严格递增顺序排列。
- * 每行的第一个整数大于前一行的最后一个整数。
- * 给你一个整数 target ，如果 target 在矩阵中，返回 true ；否则，返回 false 。
- *
+ * 64. 最小路径和
+ * 给定一个包含非负整数的 m x n 网格 grid ，请找出一条从左上角到右下角的路径，使得路径上的数字总和为最小。
+ * 说明：每次只能向下或者向右移动一步。
+ * 示例 1：
+ * 输入：grid = [[1,3,1],[1,5,1],[4,2,1]]
+ * 输出：7
+ * 解释：因为路径 1→3→1→1→1 的总和最小。
+ * 示例 2：
+ * 输入：grid = [[1,2,3],[4,5,6]]
+ * 输出：12
  */
 class Solution {
-    public boolean searchMatrix(int[][] matrix, int target) {
+    public int minPathSum(int[][] grid) {
 
-        // 从左下角开始
-        int i = matrix.length - 1;
-        int j = 0;
+        if(grid == null || grid[0].length == 0 || grid.length == 0) return 0;
 
-        while(i >= 0 && j < matrix[0].length){
+        int r = grid.length;
+        int c = grid[0].length;
 
-            if(matrix[i][j] == target) return true;
-            if(matrix[i][j] > target) {
-                i--;
-            }else{
-                j++;
+        // dp[i][j]表示到达dp[i][j]的最小路径和
+        int[][] dp = new int[r][c];
+
+        dp[0][0] = grid[0][0];
+
+        // 初始化第一列
+        for(int i = 1; i < r; i++){
+            dp[i][0] = dp[i-1][0] + grid[i][0];
+        }
+        // 初始化第一行
+        for(int i = 1; i < c; i++){
+            dp[0][i] = dp[0][i-1] + grid[0][i];
+        }
+
+        for(int i = 1; i < r; i++){
+            for(int j = 1; j < c; j++){
+                dp[i][j] = Math.min(dp[i-1][j],dp[i][j-1]) + grid[i][j];
             }
         }
 
-        return false;
+        return dp[r-1][c-1];
     }
 }

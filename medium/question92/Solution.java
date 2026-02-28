@@ -1,45 +1,51 @@
 package question92;
 
-/**
- * 64. 最小路径和
- * 给定一个包含非负整数的 m x n 网格 grid ，请找出一条从左上角到右下角的路径，使得路径上的数字总和为最小。
- * 说明：每次只能向下或者向右移动一步。
- * 示例 1：
- * 输入：grid = [[1,3,1],[1,5,1],[4,2,1]]
- * 输出：7
- * 解释：因为路径 1→3→1→1→1 的总和最小。
- * 示例 2：
- * 输入：grid = [[1,2,3],[4,5,6]]
- * 输出：12
- */
+
+
+class ListNode {
+    int val;
+    ListNode next;
+    ListNode() {}
+    ListNode(int val) { this.val = val; }
+    ListNode(int val, ListNode next) { this.val = val; this.next = next; }
+}
+
 class Solution {
-    public int minPathSum(int[][] grid) {
+    public ListNode reverseBetween(ListNode head, int left, int right) {
+        // 创建dummy哨兵节点为了防止left等于1的时候head要做反转
+        ListNode dummy = new ListNode(0);
+        dummy.next = head;
 
-        if(grid == null || grid[0].length == 0 || grid.length == 0) return 0;
+        ListNode nextStartNode = null;
 
-        int r = grid.length;
-        int c = grid[0].length;
-
-        // dp[i][j]表示到达dp[i][j]的最小路径和
-        int[][] dp = new int[r][c];
-
-        dp[0][0] = grid[0][0];
-
-        // 初始化第一列
-        for(int i = 1; i < r; i++){
-            dp[i][0] = dp[i-1][0] + grid[i][0];
-        }
-        // 初始化第一行
-        for(int i = 1; i < c; i++){
-            dp[0][i] = dp[0][i-1] + grid[0][i];
+        // 找到反转区间前面的节点
+        ListNode preNode = dummy;
+        for(int i = 1; i < left; i++){
+            preNode = preNode.next;
         }
 
-        for(int i = 1; i < r; i++){
-            for(int j = 1; j < c; j++){
-                dp[i][j] = Math.min(dp[i-1][j],dp[i][j-1]) + grid[i][j];
-            }
+        // 定义反转区间的开头(反转后变为尾部)
+        ListNode startNode = preNode.next;
+
+        /**
+         * 反转的逻辑
+         */
+        ListNode pre = null;
+        ListNode cur = startNode;
+
+        for(int i = 0; i < right - left + 1; i++){
+            ListNode next = cur.next;
+            cur.next = pre;
+            pre = cur;
+            cur = next;
         }
 
-        return dp[r-1][c-1];
+        // 链接起原链表
+        preNode.next = pre;
+        startNode.next = cur;   // 因为没有断开链表所以cur就是原链表的下一个节点
+
+        return dummy.next;
     }
+
+
 }
