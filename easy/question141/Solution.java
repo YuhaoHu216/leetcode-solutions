@@ -15,6 +15,7 @@ import java.util.Set;
  *
  */
 public class Solution {
+    // 集合的方式效率太低 双指针效率高些
     public boolean hasCycle(ListNode head) {
         Set<ListNode> set = new HashSet<>();
         while(head != null){
@@ -36,6 +37,7 @@ class Solution2 {
         }
         ListNode slow = head;
         ListNode fast = head.next;
+        // 注意循环条件和不成环判断条件
         while(fast != slow){
             if(fast == null || fast.next == null){
                 return false;
