@@ -1,4 +1,4 @@
-package question87;
+package question300;
 
 import java.util.Arrays;
 
@@ -28,6 +28,7 @@ class Solution {
 
         for(int i = 0; i < nums.length; i++){
             for(int j = 0; j < i; j++){
+                // 当i前面有小的元素说明可以加入这个子序列
                 if(nums[j] < nums[i]){
                     dp[i] = Math.max(dp[i],dp[j] + 1);
                 }
