@@ -1,4 +1,4 @@
-package question19;
+package question54;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -11,6 +11,7 @@ import java.util.List;
  */
 public class Solution {
     public List<Integer> spiralOrder(int[][] matrix) {
+
         int m = matrix.length; // 行数
         int n = matrix[0].length; // 列数
         List<Integer> result = new ArrayList<>();
@@ -31,6 +32,9 @@ public class Solution {
             };
             right--;
 
+            /*
+              加判断是因为前两次循环已经改变了边界
+             */
             // 从右到左
             if(top <= bottom){
                 for(int i = right; i >= left; i--){
