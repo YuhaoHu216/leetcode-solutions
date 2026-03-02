@@ -24,8 +24,6 @@ import java.util.PriorityQueue;
  * 输入：lists = [[]]
  * 输出：[]
  */
-
-
 class ListNode {
      int val;
      ListNode next;
@@ -34,7 +32,144 @@ class ListNode {
      ListNode(int val, ListNode next) { this.val = val; this.next = next; }
  }
 
-class Solution {
+ // 归并解法
+class Solution1 {
+    public ListNode mergeKLists(ListNode[] lists) {
+        if (lists == null || lists.length == 0) return null;
+        return merge(lists, 0, lists.length - 1);
+    }
+
+    private ListNode merge(ListNode[] lists, int left, int right) {
+        if (left == right) return lists[left];
+        int mid = left + (right - left) / 2;
+        ListNode l1 = merge(lists, left, mid);
+        ListNode l2 = merge(lists, mid + 1, right);
+        return mergeTwoLists(l1, l2);
+    }
+    // 合并两个升序链表
+    private ListNode mergeTwoLists(ListNode l1, ListNode l2) {
+        ListNode dummy = new ListNode(0);
+        ListNode tail = dummy;
+
+        while (l1 != null && l2 != null) {
+            if (l1.val < l2.val) {
+                tail.next = l1;
+                l1 = l1.next;
+            } else {
+                tail.next = l2;
+                l2 = l2.next;
+            }
+            tail = tail.next;
+        }
+
+        tail.next = (l1 != null) ? l1 : l2;
+        return dummy.next;
+    }
+}
+
+// 手写堆解法
+class Solution2 {
+    public ListNode mergeKLists(ListNode[] lists) {
+
+        if (lists == null || lists.length == 0) return null;
+
+        MinHeap heap = new MinHeap(lists.length);
+
+        // 把每个链表头加入堆
+        for (ListNode node : lists) {
+            if (node != null) heap.offer(node);
+        }
+
+        ListNode dummy = new ListNode(0);
+        ListNode tail = dummy;
+
+        while (!heap.isEmpty()) {
+            ListNode minNode = heap.poll();
+            tail.next = minNode;
+            tail = tail.next;
+
+            if (minNode.next != null) {
+                heap.offer(minNode.next);
+            }
+        }
+
+        return dummy.next;
+    }
+
+    class MinHeap {
+
+        private ListNode[] heap;
+        private int size;
+
+        public MinHeap(int capacity) {
+            heap = new ListNode[capacity];
+            size = 0;
+        }
+
+        public boolean isEmpty() {
+            return size == 0;
+        }
+
+        // 插入元素
+        public void offer(ListNode node) {
+            heap[size] = node;
+            siftUp(size);
+            size++;
+        }
+
+        // 删除最小值
+        public ListNode poll() {
+            if (size == 0) return null;
+
+            ListNode min = heap[0];
+            heap[0] = heap[size - 1];
+            size--;
+            siftDown(0);
+            return min;
+        }
+
+        // 上浮
+        private void siftUp(int index) {
+            while (index > 0) {
+                int parent = (index - 1) / 2;
+
+                if (heap[parent].val <= heap[index].val) break;
+
+                swap(parent, index);
+                index = parent;
+            }
+        }
+
+        // 下沉
+        private void siftDown(int index) {
+            while (true) {
+                int left = index * 2 + 1;
+                int right = index * 2 + 2;
+                int smallest = index;
+
+                if (left < size && heap[left].val < heap[smallest].val)
+                    smallest = left;
+
+                if (right < size && heap[right].val < heap[smallest].val)
+                    smallest = right;
+
+                if (smallest == index) break;
+
+                swap(index, smallest);
+                index = smallest;
+            }
+        }
+
+        private void swap(int i, int j) {
+            ListNode temp = heap[i];
+            heap[i] = heap[j];
+            heap[j] = temp;
+        }
+    }
+}
+
+ // api 解法优先队列 不推荐
+class Solution3 {
     public ListNode mergeKLists(ListNode[] lists) {
 
         if(lists == null || lists.length == 0) return null;
@@ -61,8 +196,6 @@ class Solution {
                 pq.offer(minNode.next);
             }
         }
-
         return dummy.next;
-
     }
 }
