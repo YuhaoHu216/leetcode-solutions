@@ -1,33 +1,55 @@
 package question78;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
- * 55. 跳跃游戏
- * 给你一个非负整数数组 nums ，你最初位于数组的 第一个下标 。数组中的每个元素代表你在该位置可以跳跃的最大长度。
- * 判断你是否能够到达最后一个下标，如果可以，返回 true ；否则，返回 false 。
+ * 78. 子集
+ * 给你一个整数数组 nums ，数组中的元素 互不相同 。返回该数组所有可能的子集（幂集）。
+ * 解集 不能 包含重复的子集。你可以按 任意顺序 返回解集。
  * 示例 1：
- * 输入：nums = [2,3,1,1,4]
- * 输出：true
- * 解释：可以先跳 1 步，从下标 0 到达下标 1, 然后再从下标1跳3步到达最后一个下标。
+ * 输入：nums = [1,2,3]
+ * 输出：[[],[1],[2],[1,2],[3],[1,3],[2,3],[1,2,3]]
  * 示例 2：
- * 输入：nums = [3,2,1,0,4]
- * 输出：false
- * 解释：无论怎样，总会到达下标为 3 的位置。但该下标的最大跳跃长度是 0 ， 所以永远不可能到达最后一个下标。
+ * 输入：nums = [0]
+ * 输出：[[],[0]]
  */
 class Solution {
-    public boolean canJump(int[] nums) {
+    public List<List<Integer>> subsets(int[] nums) {
 
-        // 核心思路是不断更新能跳到的最大距离
-
-        int rightmost = 0;
+        List<List<Integer>> result = new ArrayList<>();
+        result.add(new ArrayList<Integer>());    // 添加空集
 
         for(int i = 0; i < nums.length; i++){
-            int step = nums[i];
-            if(i <= rightmost){
-                rightmost = Math.max(rightmost,i + nums[i]);
+            int size = result.size();  // 当前子集数
+            // 将原有的子集加上一个当前数再添加到结果中
+            for(int j = 0; j < size; j++){
+                List<Integer> copyList = new ArrayList<>(result.get(j));
+                copyList.add(nums[i]);
+                result.add(copyList);
             }
-            if(rightmost >= nums.length - 1) return true;
         }
 
-        return false;
+        return result;
+    }
+}
+
+class Solution2 {
+    private List<List<Integer>> res;
+    public List<List<Integer>> subsets(int[] nums) {
+        res = new ArrayList<>();
+        backTracking(nums, 0, new ArrayList<>());
+        return res;
+    }
+
+    public void backTracking(int[] nums,int index,List<Integer> list) {
+        //任何一个能进入递归的都一定是一个正确的集合，因为源数组每个元素都不相同，并且1只能和2或3组成集合,2只能和3组成集合,3只能和自己，所以进入的一定是唯一的
+        res.add(new ArrayList<>(list));
+        //按层遍历
+        for (int i = index; i < nums.length; i++) {
+            list.add(nums[i]);
+            backTracking(nums,i+1,list);//递归
+            list.remove(list.size()-1);//回溯
+        }
     }
 }

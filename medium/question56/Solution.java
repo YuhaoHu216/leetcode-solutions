@@ -1,55 +1,46 @@
 package question56;
-
+/**
+ * 56.合并区间
+ * 以数组 intervals 表示若干个区间的集合，其中单个区间为 intervals[i] = [starti, endi] 。请你合并所有重叠的区间，并返回 一个不重叠的区间数组，该数组需恰好覆盖输入中的所有区间 。
+ * 示例 1：
+ * 输入：intervals = [[1,3],[2,6],[8,10],[15,18]]
+ * 输出：[[1,6],[8,10],[15,18]]
+ * 解释：区间 [1,3] 和 [2,6] 重叠, 将它们合并为 [1,6].
+ *
+ */
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
-/**
- * 78. 子集
- * 给你一个整数数组 nums ，数组中的元素 互不相同 。返回该数组所有可能的子集（幂集）。
- * 解集 不能 包含重复的子集。你可以按 任意顺序 返回解集。
- * 示例 1：
- * 输入：nums = [1,2,3]
- * 输出：[[],[1],[2],[1,2],[3],[1,3],[2,3],[1,2,3]]
- * 示例 2：
- * 输入：nums = [0]
- * 输出：[[],[0]]
- */
 class Solution {
-    public List<List<Integer>> subsets(int[] nums) {
-
-        List<List<Integer>> result = new ArrayList<>();
-        result.add(new ArrayList<Integer>());    // 添加空集
-
-        for(int i = 0; i < nums.length; i++){
-            int size = result.size();  // 当前子集数
-            // 将原有的子集加上一个当前数再添加到结果中
-            for(int j = 0; j < size; j++){
-                List<Integer> copyList = new ArrayList<>(result.get(j));
-                copyList.add(nums[i]);
-                result.add(copyList);
+    public int[][] merge(int[][] intervals) {
+        // 表示已经合并好的区间
+        List<int[]> result = new ArrayList<>();
+        // 排序数组,方便看有没有重叠(注意函数用法)
+        Arrays.sort(intervals,(a,b) -> a[0] - b[0]);
+        // 表示正在处理的区间
+        int[] temp = intervals[0];
+        // res.add(current) 先添加第一个区间，是为了保证结果列表至少有一个区间可供后续合并修改。
+        // 后续合并时会直接更新 current 的右边界，结果列表同步更新。
+        result.add(temp);
+        for(int[] interval : intervals){
+            // [1,3],[2,6] 正在合并的区间的右边界比下一个区间的左边界要大才行
+            // 这里是在修改集合中的数组
+            if(temp[1] >= interval[0]){
+                temp[1] = Math.max(interval[1],temp[1]);
+            }else{
+                temp = interval;
+                result.add(temp);
             }
         }
+        // 将集合转换为数组(注意函数用法)
+        return result.toArray(new int[result.size()][]);
 
-        return result;
-    }
-}
-
-class Solution2 {
-    private List<List<Integer>> res;
-    public List<List<Integer>> subsets(int[] nums) {
-        res = new ArrayList<>();
-        backTracking(nums, 0, new ArrayList<>());
-        return res;
     }
 
-    public void backTracking(int[] nums,int index,List<Integer> list) {
-        //任何一个能进入递归的都一定是一个正确的集合，因为源数组每个元素都不相同，并且1只能和2或3组成集合,2只能和3组成集合,3只能和自己，所以进入的一定是唯一的
-        res.add(new ArrayList<>(list));
-        //按层遍历
-        for (int i = index; i < nums.length; i++) {
-            list.add(nums[i]);
-            backTracking(nums,i+1,list);//递归
-            list.remove(list.size()-1);//回溯
-        }
+
+    public static void main(String[] args) {
+        int[][] intervals = {{1,3},{2,6},{8,10},{15,18}} ;
+        System.out.println(Arrays.deepToString(new Solution().merge(intervals)));
     }
 }
