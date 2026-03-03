@@ -36,6 +36,7 @@ class Solution2 {
         ListNode pA = headA, pB = headB;
 
         while (pA != pB) {
+            // 注意这里的判断条件
             pA = pA == null ? headB : pA.next;
             pB = pB == null ? headA : pB.next;
         }
