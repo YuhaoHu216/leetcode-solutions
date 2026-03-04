@@ -1,4 +1,4 @@
-package question07;
+package question42;
 
 /**
  * 42.接雨水
@@ -14,6 +14,10 @@ package question07;
 class Solution {
     // 双指针解法
     public int trap(int[] height) {
+        // 维护两个指针 left 和 right，从两边往中间收缩。
+        // 同时维护 leftMax 和 rightMax。
+        // 哪边的最大值更小，就能确定这一边的水量。
+        // 某个位置的水量 = min(左最大, 右最大) - 自身高度。
         int left = 0,right = height.length - 1;
         int leftMax = 0,rightMax = 0;
         int result = 0;

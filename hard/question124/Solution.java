@@ -1,4 +1,4 @@
-package question50;
+package question124;
 
 /**
  * 124.二叉树中最大路径和

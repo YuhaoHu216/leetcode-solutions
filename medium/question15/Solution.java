@@ -1,55 +1,67 @@
 package question15;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 /**
- * 189.轮转数组
- * 给定一个整数数组 nums，将数组中的元素向右轮转 k 个位置，其中 k 是非负数。
- * 示例 1:
- * 输入: nums = [1,2,3,4,5,6,7], k = 3
- * 输出: [5,6,7,1,2,3,4]
- * 解释:
- * 向右轮转 1 步: [7,1,2,3,4,5,6]
- * 向右轮转 2 步: [6,7,1,2,3,4,5]
- * 向右轮转 3 步: [5,6,7,1,2,3,4]
+ * 15.三数之和
+ * 给你一个整数数组 nums ，判断是否存在三元组 [nums[i], nums[j], nums[k]] 满足 i != j、i != k 且 j != k ，同时还满足 nums[i] + nums[j] + nums[k] == 0 。请你返回所有和为 0 且不重复的三元组。
+ * 注意：答案中不可以包含重复的三元组。
+ * 示例 1：
+ * 输入：nums = [-1,0,1,2,-1,-4]
+ * 输出：[[-1,-1,2],[-1,0,1]]
+ * 解释：
+ * nums[0] + nums[1] + nums[2] = (-1) + 0 + 1 = 0 。
+ * nums[1] + nums[2] + nums[4] = 0 + 1 + (-1) = 0 。
+ * nums[0] + nums[3] + nums[4] = (-1) + 2 + (-1) = 0 。
+ * 不同的三元组是 [-1,0,1] 和 [-1,-1,2] 。
+ * 注意，输出的顺序和三元组的顺序并不重要。
+ * tag:双指针
  */
-public class Solution {
-    public void rotate(int[] nums, int k) {
-        int length = nums.length;
-        k = k % length;
-        int[] result = new int[length];
-        for (int i = 0; i < length; i++) {
-            result[(i + k) % length] = nums[i];
+class Solution {
+    public List<List<Integer>> threeSum(int[] nums) {
+
+        List<List<Integer>> result = new ArrayList<>();
+        // 数组元素是基本类型时:双轴快速排序 引用类型:TimSort(基于归并和插入排序)
+        Arrays.sort(nums);
+
+        // 因为三元组不能重复,所以要避免之前的数参与后面的组合,这里的length-2是一个考量
+        for (int i = 0; i < nums.length - 2; i++) {
+            // 去除重复的数(重复数只判定第一个)
+            if (i > 0 && nums[i] == nums[i - 1])
+                continue;
+            // left = i + 1也是一个去重的考量
+            int left = i + 1;
+            int right = nums.length - 1;
+
+            while (left < right) {
+                int sum = nums[left] + nums[right] + nums[i];
+                if (sum == 0) {
+                    result.add(Arrays.asList(nums[right], nums[left], nums[i]));
+                    // 更新指针的值,并且去重
+                    left++;
+                    right--;
+                    // 去重应该是移动指针,并且是while,而非continue
+                    while (nums[left] == nums[left - 1] && left < right)
+                        left++;
+                    while (nums[right] == nums[right + 1] && left < right)
+                        right--;
+                } else if (sum > 0) {
+                    right--;
+                } else {
+                    left++;
+                }
+            }
         }
-        System.arraycopy(result, 0, nums, 0, length);
-        System.out.println(Arrays.toString(nums));
+        return result;
+
     }
+
 
     public static void main(String[] args) {
-        int[] nums = {1,2,3,4,5,6,7};
-//        int[] nums = {-1,-100,3,99};
-        int k = 2;
-        new Solution().rotate(nums,k);
+        int[] nums = {-1,0,1,2,-1,-4};
+        System.out.println(new Solution().threeSum(nums));
     }
 }
 
-class Solution2 {
-    public void rotate(int[] nums, int k) {
-        // 轮转可以转化为先翻转整个数组,然后前K个翻转,然后K+1到n个翻转
-        int n = nums.length;
-        k = k % n;
-        reverse(nums,0,n-1);
-        reverse(nums,0,k-1);
-        reverse(nums,k,n-1);
-    }
-
-    void reverse(int[] nums,int start,int end){
-        while(start < end){
-            int temp = nums[start];
-            nums[start] = nums[end];
-            nums[end] = temp;
-            start++;
-            end--;
-        }
-    }
-}

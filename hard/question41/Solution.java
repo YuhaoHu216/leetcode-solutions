@@ -1,4 +1,4 @@
-package question17;
+package question41;
 
 /**
  * 41.缺失的第一个正数

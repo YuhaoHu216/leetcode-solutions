@@ -1,4 +1,4 @@
-package question12;
+package question76;
 
 import java.util.HashMap;
 import java.util.Map;
