@@ -18,6 +18,7 @@ package question1143;
  * 输入：text1 = "abc", text2 = "def"
  * 输出：0
  * 解释：两个字符串没有公共子序列，返回 0 。
+ *
  */
 class Solution {
     public int longestCommonSubsequence(String text1, String text2) {
