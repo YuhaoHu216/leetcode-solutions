@@ -52,7 +52,7 @@ public class Solution {
         // 更新答案
         maxSum = Math.max(maxSum, priceNewpath);
 
-        // 返回节点的最大贡献值
+        // 当前节点能给父节点提供的最大贡献值
         return node.val + Math.max(leftGain, rightGain);
     }
 }
