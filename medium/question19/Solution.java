@@ -1,4 +1,4 @@
-package question29;
+package question19;
 
 
 
@@ -10,6 +10,7 @@ package question29;
 public class Solution {
     public ListNode removeNthFromEnd(ListNode head, int n) {
 
+            // 注意从前置节点开始遍历 防止只有一个节点的情况
             ListNode dummy = new ListNode(0, head);
             int length = getLength(head);
             ListNode cur = dummy;

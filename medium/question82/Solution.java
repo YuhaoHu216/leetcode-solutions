@@ -8,7 +8,7 @@ class Solution {
     public ListNode deleteDuplicates(ListNode head) {
         // 虚节点用来返回结果
         ListNode dummy = new ListNode(0,head);
-        // 前置节点用于移除节点
+        // 前置节点用于移除节点 指向当前确认不重复的节点
         ListNode pre = dummy;
         while(head != null){
             // 当当前节点的值等于后面节点的值时
