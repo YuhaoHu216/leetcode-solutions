@@ -12,7 +12,6 @@ import java.util.Set;
  * 输入：head = [3,2,0,-4], pos = 1
  * 输出：返回索引为 1 的链表节点
  * 解释：链表中有一个环，其尾部连接到第二个节点。
- *
  */
 public class Solution {
     public ListNode detectCycle(ListNode head) {
@@ -31,6 +30,7 @@ public class Solution {
 
 class Solution2 {
     public ListNode detectCycle(ListNode head) {
+        // 快慢指针从head开始 当快慢指针相遇时 从head再出一个指针和慢指针同步 相遇点就是环的入口点
         if (head == null) {
             return null;
         }
