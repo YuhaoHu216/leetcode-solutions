@@ -1,4 +1,4 @@
-package question45;
+package question199;
 
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -27,6 +27,7 @@ class TreeNode {
  * 给定一个二叉树的 根节点 root，想象自己站在它的右侧，按照从顶部到底部的顺序，返回从右侧所能看到的节点值。
  */
 class Solution {
+    // 层序遍历 将每层的最后一个节点加入结果集合
     public List<Integer> rightSideView(TreeNode root) {
         Queue<TreeNode> queue = new LinkedList<>();
         List<Integer> result = new ArrayList<>();
