@@ -1,4 +1,4 @@
-package question33;
+package question148;
 
 /**
  * 148.排序链表
@@ -30,7 +30,7 @@ public class Solution {
     }
 
     private ListNode merge(ListNode l1, ListNode l2) {
-        ListNode dummy = new ListNode(0), p = dummy;
+        ListNode dummy = new ListNode(0), p = dummy;  // 注意这里用一个暂时节点p来运算
         while (l1 != null && l2 != null) {
             if (l1.val < l2.val) {
                 p.next = l1;
