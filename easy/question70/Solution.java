@@ -27,8 +27,9 @@ class Solution {
         int s1 = 1; // 到1楼的方案数
 
         for(int i = 2; i <=n; i ++){
+            // 到当前楼的方法总数
             int newStep = s0 + s1;
-            s0 = s1;
+            s0 = s1; // 现在考虑下一层 现在的倒数第一层就是原来你的倒数第二层
             s1 = newStep;
         }
 
