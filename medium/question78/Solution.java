@@ -16,7 +16,6 @@ import java.util.List;
  */
 class Solution {
     public List<List<Integer>> subsets(int[] nums) {
-
         List<List<Integer>> result = new ArrayList<>();
         result.add(new ArrayList<Integer>());    // 添加空集
 
@@ -29,7 +28,6 @@ class Solution {
                 result.add(copyList);
             }
         }
-
         return result;
     }
 }
