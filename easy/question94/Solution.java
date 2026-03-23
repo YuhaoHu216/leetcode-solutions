@@ -19,7 +19,6 @@ public class Solution {
                 stack.push(cur);
                 cur = cur.left;
             }
-
             cur = stack.pop();
             result.add(cur.val);
             cur = cur.right;
