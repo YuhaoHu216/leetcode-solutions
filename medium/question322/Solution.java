@@ -1,4 +1,4 @@
-package question85;
+package question322;
 
 import java.util.Arrays;
 
@@ -21,22 +21,23 @@ import java.util.Arrays;
 class Solution {
     public int coinChange(int[] coins, int amount) {
 
-        int dp[] = new int[amount + 1];
-        // 表示一种凑不出来的状态
+        // dp[i] 表示凑出金额i所需要的最少硬币数
+        int[] dp = new int[amount + 1];
+        // 表示一种凑不出来的状态(需要的硬币数已经大于所给的硬币数了)
         Arrays.fill(dp,amount + 1);
         dp[0] = 0;
 
+        // 对于每个金额都遍历硬币
         for(int i = 1; i <= amount; i++){
-            for(int j = 0; j < coins.length; j++){
-                if(coins[j] <= i){
-                    dp[i] = Math.min(dp[i],dp[i - coins[j]] + 1);
+            for (int coin : coins) {
+                if (coin <= i) {
+                    // 凑i的最优解=凑(i-coins[j])的最优解+1
+                    // 减当前硬币的币值加上当前这个硬币
+                    dp[i] = Math.min(dp[i], dp[i - coin] + 1);
                 }
-
             }
         }
         // 如果还是保持凑不出来的状态,那么就返回-1
         return dp[amount] > amount ? -1 : dp[amount];
-
-
     }
 }
