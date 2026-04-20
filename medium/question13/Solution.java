@@ -24,6 +24,7 @@ class Solution {
              单独成为新的子数组的开始（前面的和是负数，不如重新开始）
              延续前一个子数组（之前的和是正的，可以让整体更大）
              */
+
             currentMaxSum = Math.max(num, currentMaxSum + num);
             max = Math.max(max, currentMaxSum);
         }
