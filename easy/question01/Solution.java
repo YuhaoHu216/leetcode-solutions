@@ -16,6 +16,7 @@ import java.util.HashMap;
  */
 public class Solution {
     public int[] towSum(int [] nums,int target){
+        // 哈希表法
         HashMap<Integer ,Integer> hashMap = new HashMap<>();
         for(int i = 0;i < nums.length; i++){
             int theOtherNum = target - nums[i];
