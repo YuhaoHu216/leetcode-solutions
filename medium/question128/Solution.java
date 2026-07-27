@@ -14,6 +14,8 @@ import java.util.*;
  */
 class Solution {
     public int longestConsecutive(int[] nums) {
+        // 利用集合的contains函数就可以轻松找出一个数的下一个数
+        // 要确定一个连续序列开头的数就必须没有比它小1的数
         Set<Integer> set = new HashSet<>();
         for(Integer i : nums){
             set.add(i);
