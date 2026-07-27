@@ -1,9 +1,6 @@
 package question49;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 
 /**
  * 49.字母异位词分组
@@ -17,21 +14,31 @@ import java.util.List;
  * 字符串 "ate" ，"eat" 和 "tea" 是字母异位词，因为它们可以重新排列以形成彼此。
  * tags:哈希表
  */
-public class Solution {
-    public List<List<String>> groupAnagrams(String[] strs){
-        HashMap<String,List<String>> hashMap = new HashMap<>();
+class Solution {
+    public List<List<String>> groupAnagrams(String[] strs) {
+        // 注意字符串和字符数组的转化 ，hashmap取值变集合的语法；核心思路在于排序后的异位词结果相同
+        Map<String,List<String>> map = new HashMap();
 
-        for(String s: strs){
-            char[] c = s.toCharArray();
-            Arrays.sort(c);
-            String key = new String(c);
-            if(!hashMap.containsKey(key)){
-                hashMap.put(key,new ArrayList<>());
+        for(String str : strs){
+            char[] chars = str.toCharArray();
+            Arrays.sort(chars);
+            String sortedStr = new String(chars);
+            // ******************************
+            // if(!map.containsKey(sortedStr)){
+            //     map.put(sortedStr,new ArrayList<>());
+            // }
+            // ******************************
+
+            // ******************************
+            List list = map.get(sortedStr);
+            if(list == null){
+                map.put(sortedStr,new ArrayList<>());
             }
-            hashMap.get(key).add(s);
+            // ******************************
+            map.get(sortedStr).add(str);
         }
 
-        return new ArrayList<>(hashMap.values());
+        return new ArrayList<>(map.values());
     }
 
     public static void main(String[] args){
@@ -39,3 +46,6 @@ public class Solution {
         System.out.println(new Solution().groupAnagrams(strs));
     }
 }
+
+
+
