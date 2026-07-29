@@ -12,6 +12,7 @@ package question11;
  */
 class Solution {
     public int maxArea(int[] height) {
+        // 双指针 水量的计算一定是两根柱子中较短的那根决定的 然后通过不断移动找最大值
         int left = 0;
         int right = height.length - 1;
         int maxArea = 0;
