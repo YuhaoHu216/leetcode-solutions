@@ -14,6 +14,7 @@ import java.util.Arrays;
  */
 class Solution {
     public void moveZeroes(int[] nums) {
+        // 重点在于用一个慢指针来标记每一个非零数应该在数组中的位置，当遇到非零数就把这个位置占了，慢指针后移
         int slow = 0; // 用于指定非零数的位置
         for(int i = 0; i < nums.length; i++){
             if(nums[i] != 0){
