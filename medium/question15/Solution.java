@@ -21,6 +21,8 @@ import java.util.List;
  */
 class Solution {
     public List<List<Integer>> threeSum(int[] nums) {
+        // 主要思路为排序，重复数只取第一个计算，按顺序定数，然后双指针扫后面数
+        // 存在条件满足的三个数后，双指针的移动要去重，注意把三个数变为集合的语法
 
         List<List<Integer>> result = new ArrayList<>();
         // 数组元素是基本类型时:双轴快速排序 引用类型:TimSort(基于归并和插入排序)
@@ -33,7 +35,7 @@ class Solution {
                 continue;
             // left = i + 1也是一个去重的考量
             int left = i + 1;
-            int right = nums.length - 1;
+            int right = nums.length - 1; // right 要定义在for里面，每一个for是一个新right
 
             while (left < right) {
                 int sum = nums[left] + nums[right] + nums[i];
