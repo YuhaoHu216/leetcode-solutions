@@ -52,6 +52,7 @@ class Solution2 {
             char c = s.charAt(right);
             // 如果一个字符已经出现过就要考虑是否要把左指针移动到已经出现过的字符的右边
             if (map.containsKey(c)) {
+                // 因为其他重复字符导致被跳过
                 // 如果这个字母的上一次出现的位置左指针已经经过了(因为其他重复字母 例如 abba),左指针就不变,要防止指针回退
                 left = Math.max(left, map.get(c) + 1);
             }
