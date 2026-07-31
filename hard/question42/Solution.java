@@ -14,6 +14,7 @@ package question42;
 class Solution {
     // 双指针解法
     public int trap(int[] height) {
+        // 水只会出现在矮的那边，先左右比较，矮的那边再看是否是一边的历史最高，不是就会蓄水。是就更新
         // 维护两个指针 left 和 right，从两边往中间收缩。
         // 同时维护 leftMax 和 rightMax。
         // 哪边的最大值更小，就能确定这一边的水量。
