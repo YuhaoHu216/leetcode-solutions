@@ -17,6 +17,8 @@ import java.util.List;
  */
 public class Solution {
     public static List<Integer> findAnagrams(String s, String p) {
+        // 注意字符串比较的函数语法以及所属包名
+        // 因为和字符串顺序无关，所以可以用一个字母计数数组来表示s的窗口和p的字符串是否为异位词
         List<Integer> result = new ArrayList<>();
         int[] countS = new int[26];
         int[] countP = new int[26];
