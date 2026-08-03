@@ -12,14 +12,16 @@ import java.util.HashMap;
  */
 public class Solution {
     public int subarraySum(int[] nums, int k) {
+        // 前缀和解法 一个前缀和减去另外一个前缀和差为K表示这两个前缀不重合的数的和为K
+        // 使用map记录某个前缀和出现的次数 注意getOrDefault()的用法
         int count = 0;
         int sum = 0;
         HashMap<Integer,Integer> preSum = new HashMap<>();
         preSum.put(0,1);
         for(int num : nums){
-            sum += num;
-            count += preSum.getOrDefault(sum-k,0);
-            preSum.put(sum,preSum.getOrDefault(sum,0) + 1);
+            sum += num; // 计算前缀和
+            count += preSum.getOrDefault(sum-k,0);  // 计算当前前缀和与之前的前缀和间和为K的字串有几个
+            preSum.put(sum,preSum.getOrDefault(sum,0) + 1); // 把当前前缀和入map
         }
         return count;
     }
