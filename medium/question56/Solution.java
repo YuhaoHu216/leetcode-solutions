@@ -14,7 +14,7 @@ import java.util.List;
 
 class Solution {
     public int[][] merge(int[][] intervals) {
-        // 表示已经合并好的区间
+        // 注意排序数组的语法 注意集合转数组的语法
         List<int[]> result = new ArrayList<>();
         // 排序数组,方便看有没有重叠(注意函数用法)
         Arrays.sort(intervals,(a,b) -> a[0] - b[0]);
@@ -26,11 +26,11 @@ class Solution {
         for(int[] interval : intervals){
             // [1,3],[2,6] 正在合并的区间的右边界比下一个区间的左边界要大才行
             // 这里是在修改集合中的数组
+            temp = result.get(result.size() - 1);
             if(temp[1] >= interval[0]){
-                temp[1] = Math.max(interval[1],temp[1]);
+                temp[1] = Math.max(temp[1],interval[1]);
             }else{
-                temp = interval;
-                result.add(temp);
+                result.add(interval);
             }
         }
         // 将集合转换为数组(注意函数用法)
