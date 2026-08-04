@@ -8,6 +8,7 @@ import java.util.Arrays;
  */
 public class Solution {
     public void setZeroes(int[][] matrix) {
+        // 用第一行和第一列作标记 来判断其对应的列/行是否要置零 提前判断第一行/列是否需要置零
         int m = matrix.length;  // 行数,y
         int n = matrix[0].length; // 列数,x
 
