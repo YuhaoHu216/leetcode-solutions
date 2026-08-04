@@ -35,7 +35,7 @@ public class Solution {
 
 class Solution2 {
     public void rotate(int[] nums, int k) {
-        // 轮转可以转化为先翻转整个数组,然后前K个翻转,然后K+1到n个翻转
+        // 轮转可以转化为先翻转整个数组,然后前K个翻转,然后K+1到n个翻转 注意K可能比数组长度大
         int n = nums.length;
         k = k % n;
         reverse(nums,0,n-1);
