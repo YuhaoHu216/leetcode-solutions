@@ -23,7 +23,7 @@ public class Solution {
             result[i] = result[i-1] * nums[i-1];
         }
         // 计算每个数右边的乘积并且相乘得到答案
-        int right = 1;
+        int right = 1; // 因为result已经有左边乘积了所以要用另外的数表示右边的乘积
         for(int i = n - 1; i >=0; i--){
             result[i] *= right;
             right *= nums[i];   // 更新right的值
