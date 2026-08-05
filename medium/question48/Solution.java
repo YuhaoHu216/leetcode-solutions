@@ -11,7 +11,8 @@ package question48;
  */
 public class Solution {
     public void rotate(int[][] matrix) {
-        // 先对称变换,每行再反转
+        // 数学题 算出坐标变化的规律
+        // 先每个数 i和j 交换（对称变换），然后每行再反转
         int n = matrix.length;
 
         for(int i = 0; i < n; i++){
