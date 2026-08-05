@@ -11,7 +11,7 @@ import java.util.List;
  */
 public class Solution {
     public List<Integer> spiralOrder(int[][] matrix) {
-
+        // 直接模拟过程，注意因为从左到右和从上到下改变了边界，后续要先判断边界情况
         int m = matrix.length; // 行数
         int n = matrix[0].length; // 列数
         List<Integer> result = new ArrayList<>();
