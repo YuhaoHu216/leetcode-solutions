@@ -10,6 +10,24 @@ import java.util.Set;
  */
 public class Solution {
     public ListNode getIntersectionNode(ListNode headA, ListNode headB) {
+        // 双指针的原理是两个指针走同样的路程最后一定会走到相同点，如果没有交点就同时为null
+        if (headA == null || headB == null) return null;
+
+        ListNode pA = headA, pB = headB;
+
+        while (pA != pB) {
+            // 判断，如果一条链表走完了，就从另一条链表起始点开始走
+            pA = pA == null ? headB : pA.next;
+            pB = pB == null ? headA : pB.next;
+        }
+
+        return pA;
+    }
+}
+
+// 用双指针来实现
+class Solution2 {
+    public ListNode getIntersectionNode(ListNode headA, ListNode headB) {
         Set<ListNode> set = new HashSet<>();
         ListNode temp = headA;
         while(temp != null){
@@ -25,23 +43,6 @@ public class Solution {
         }
 
         return null;
-    }
-}
-
-// 用双指针来实现
-class Solution2 {
-    public ListNode getIntersectionNode(ListNode headA, ListNode headB) {
-        if (headA == null || headB == null) return null;
-
-        ListNode pA = headA, pB = headB;
-
-        while (pA != pB) {
-            // 注意这里的判断条件
-            pA = pA == null ? headB : pA.next;
-            pB = pB == null ? headA : pB.next;
-        }
-
-        return pA;
     }
 }
 
