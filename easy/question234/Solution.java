@@ -10,37 +10,6 @@ import java.util.Objects;
  */
 public class Solution {
     public boolean isPalindrome(ListNode head) {
-        List<Integer> temp = new ArrayList<>();
-        ListNode p = head;
-        while(p != null){
-            temp.add(p.val);
-            p = p.next;
-        }
-
-        int left = 0;
-        int right = temp.size() - 1;
-        while(left < right){
-            if(!Objects.equals(temp.get(left), temp.get(right))){
-                return false;
-            }
-            left++;
-            right--;
-        }
-        return true;
-
-    }
-}
-
-class ListNode {
-      int val;
-      ListNode next;
-      ListNode() {}
-      ListNode(int val) { this.val = val; }
-      ListNode(int val, ListNode next) { this.val = val; this.next = next; }
-}
-
-class Solution2 {
-    public boolean isPalindrome(ListNode head) {
         // 最优解思路,快慢指针找终点,将右半链表翻转,再依次比较
         // 不最优解可以将值存入动态数组然后左右双指针比较
 
@@ -82,5 +51,36 @@ class Solution2 {
             head = next;
         }
         return prev;
+    }
+}
+
+class ListNode {
+      int val;
+      ListNode next;
+      ListNode() {}
+      ListNode(int val) { this.val = val; }
+      ListNode(int val, ListNode next) { this.val = val; this.next = next; }
+}
+
+class Solution2 {
+    public boolean isPalindrome(ListNode head) {
+        List<Integer> temp = new ArrayList<>();
+        ListNode p = head;
+        while(p != null){
+            temp.add(p.val);
+            p = p.next;
+        }
+
+        int left = 0;
+        int right = temp.size() - 1;
+        while(left < right){
+            if(!Objects.equals(temp.get(left), temp.get(right))){
+                return false;
+            }
+            left++;
+            right--;
+        }
+        return true;
+
     }
 }
