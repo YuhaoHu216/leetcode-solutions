@@ -13,6 +13,7 @@ package question02;
  */
 class Solution {
     public ListNode addTwoNumbers(ListNode l1, ListNode l2) {
+        // 直接模拟 注意短的链表后面没有节点值用0代替 注意下一个节点的null判定
         ListNode dummy = new ListNode(-1);
         ListNode head = dummy;
         int carry = 0;
