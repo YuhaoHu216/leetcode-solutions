@@ -36,17 +36,17 @@ class Solution {
             }
         }
         // 3.将新的节点从原链表中拆分出来组成新链表
+        // 保持原链表和复制链表都完整 以原链表为准进行拆分
         Node newHead = head.next;
         Node cur = head;
         while (cur != null) {
-            Node copy = cur.next;
-            cur.next = copy.next;
-            if (copy.next != null) {
-                copy.next = copy.next.next;
+            Node copy = cur.next; // 拿到复制的节点
+            cur.next = copy.next; // 原链表连接下一节点
+            if (copy.next != null) { // 这里用于解决最后一个节点的问题
+                copy.next = copy.next.next; // 复制链表连接下一节点
             }
-            cur = cur.next;
+            cur = cur.next; // 迭代原链表节点
         }
-
         return newHead;
     }
 }
