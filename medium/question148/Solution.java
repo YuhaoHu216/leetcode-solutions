@@ -15,7 +15,7 @@ public class Solution {
         // 1. 快慢指针找中点
         ListNode slow = head, fast = head, prev = null;
         while (fast != null && fast.next != null) {
-            prev = slow;         // 记录 slow 的上一个节点
+            prev = slow;         // 记录 slow 的上一个节点, prev 的意义是为了断开两个链表
             slow = slow.next;
             fast = fast.next.next;
         }
