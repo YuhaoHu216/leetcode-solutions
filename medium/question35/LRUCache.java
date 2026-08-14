@@ -19,7 +19,7 @@ import java.util.Map;
  * [null, null, null, 1, null, -1, null, -1, 3, 4]
  */
 class LRUCache {
-    // 底层是一个双向链表,最新操作过的数就排在链表最前面.
+    // 底层是一个节点为键值对双向链表,最新操作过的数就排在链表最前面.对元素的put和remove链表和map都要同步修改
     // 用一个hashmap来维护节点值和节点,两个哨兵节点来维护头尾
     // hashmap主要用于快速判断元素是否在缓存中 双向链表用于构建缓存的物理结构
 
