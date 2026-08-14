@@ -1,18 +1,18 @@
 package question94;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Stack;
+import java.util.*;
 
 /**
  * 94. 二叉树的中序遍历
  * 给定一个二叉树的根节点 root ，返回 它的 中序 遍历 。
  */
+
+// 迭代用栈，先找到最左的节点，沿途的节点都用栈存储。直到为null，从栈里弹出节点
 public class Solution {
     public List<Integer> inorderTraversal(TreeNode root) {
         List<Integer> result = new ArrayList<>();
         TreeNode cur = root;
-        Stack<TreeNode> stack = new Stack<>();
+        Deque<TreeNode> stack = new ArrayDeque<>();
         while(cur != null || !stack.isEmpty()){
 
             while(cur != null){
@@ -27,6 +27,7 @@ public class Solution {
     }
 }
 
+// 递归先把左节点递归，再操作当前节点，最后递归右节点。注意中止条件
 class Solution2 {
     public List<Integer> inorderTraversal(TreeNode root) {
         List<Integer> result = new ArrayList<>();
