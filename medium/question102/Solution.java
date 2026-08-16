@@ -23,6 +23,7 @@ class TreeNode {
     }
 }
 
+// 层序遍历，队列，不必多说
 class Solution {
     public List<List<Integer>> levelOrder(TreeNode root) {
         List<List<Integer>> result = new ArrayList<>();

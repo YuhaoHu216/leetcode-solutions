@@ -24,7 +24,7 @@ class Solution {
         return result;
     }
 
-
+    // 递归返回的值是该节点能提供的最大深度
     int maxDepth(TreeNode node){
         if(node == null){
             return 0;
