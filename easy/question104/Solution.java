@@ -5,7 +5,12 @@ import java.util.Queue;
 
 /**
  * 104.二叉树的最大深度
+ * 给定一个二叉树 root ，返回其最大深度。
+ *
+ * 二叉树的 最大深度 是指从根节点到最远叶子节点的最长路径上的节点数。
+ *
  */
+// 最大深度为左子树与右子树其中最深的加上根节点
 public class Solution {
     public int maxDepth(TreeNode root) {
         if(root == null){
@@ -18,6 +23,7 @@ public class Solution {
     }
 }
 
+// 迭代法用队列 有种层序给感觉 将每层的节点都入队 然后加层数
 class Solution2 {
     public int maxDepth(TreeNode root) {
         if (root == null) {
