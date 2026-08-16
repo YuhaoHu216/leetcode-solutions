@@ -1,5 +1,7 @@
 package question224;
 
+import java.util.ArrayDeque;
+import java.util.Deque;
 import java.util.LinkedList;
 import java.util.Queue;
 
@@ -8,6 +10,7 @@ import java.util.Queue;
  * 给你一棵二叉树的根节点 root ，翻转这棵二叉树，并返回其根节点。
  *
  */
+// 先递归左节点，再递归右节点。再把当前节点的左节点赋值为得到的右节点，右节点同理
 public class Solution {
     public TreeNode invertTree(TreeNode root) {
         if(root == null){
@@ -23,13 +26,14 @@ public class Solution {
     }
 }
 
+// 迭代法用思路类似层序遍历 弹出当前节点后，把当前节点的左右节点交换
 class Solution2 {
     public TreeNode invertTree(TreeNode root) {
         if(root == null){
             return null;
         }
 
-        Queue<TreeNode> queue = new LinkedList<>();
+        Deque<TreeNode> queue = new ArrayDeque<>();
         queue.offer(root);
 
         while(!queue.isEmpty()){
