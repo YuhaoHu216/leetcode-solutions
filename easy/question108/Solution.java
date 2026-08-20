@@ -16,6 +16,7 @@ class TreeNode {
 /**
  * 108. 将有序数组转换为二叉搜索树
  */
+// 利用二叉搜索树的中序遍历有序性，递归选择数组中点作为根节点，再分别对左右子数组递归构建左右子树。
 class Solution {
     public TreeNode sortedArrayToBST(int[] nums) {
         return helper(nums,0,nums.length - 1);
