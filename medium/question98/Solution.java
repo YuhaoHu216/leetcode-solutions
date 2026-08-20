@@ -1,42 +1,49 @@
 package question98;
 
+
+import java.util.LinkedList;
+
+class TreeNode {
+    int val;
+    TreeNode left;
+    TreeNode right;
+    TreeNode() {}
+    TreeNode(int val) { this.val = val; }
+    TreeNode(int val, TreeNode left, TreeNode right) {
+        this.val = val;
+        this.left = left;
+        this.right = right;
+    }
+}
+
 /**
- * 75. 颜色分类
- * 给定一个包含红色、白色和蓝色、共 n 个元素的数组 nums ，原地 对它们进行排序，使得相同颜色的元素相邻，并按照红色、白色、蓝色顺序排列。
- * 我们使用整数 0、 1 和 2 分别表示红色、白色和蓝色。
- * 必须在不使用库内置的 sort 函数的情况下解决这个问题。
- * 示例 1：
- * 输入：nums = [2,0,2,1,1,0]
- * 输出：[0,0,1,1,2,2]
- * 示例 2：
- * 输入：nums = [2,0,1]
- * 输出：[0,1,2]
+ * 98. 验证二叉搜索树
+ * 给你一个二叉树的根节点 root ，判断其是否是一个有效的二叉搜索树。
+ * 有效 二叉搜索树定义如下：
+ * 节点的左子树只包含 小于 当前节点的数。
+ * 节点的右子树只包含 大于 当前节点的数。
+ * 所有左子树和右子树自身必须也是二叉搜索树。
  */
+// 利用二叉搜索树中序遍历结果必须严格递增的性质，遍历过程中记录前一个节点值，若当前值不大于前一个值则不是有效 BST。
 class Solution {
-    public void sortColors(int[] nums) {
-        int n = nums.length;
-        int p0=0,p1 = 0;
+    public boolean isValidBST(TreeNode root) {
+        LinkedList<TreeNode> stack = new LinkedList<>();
+        double preOrderVal = -Double.MAX_VALUE;
 
-        for(int i = 0; i < n; i++){
-            if(nums[i] == 1){
-                int temp = nums[i];
-                nums[i] = nums[p1];
-                nums[p1] = temp;
-                p1++;
-            }else if(nums[i] == 0){
-                int temp = nums[i];
-                nums[i] = nums[p0];
-                nums[p0] = temp;
-                if(p0 < p1){
-                    temp = nums[p1];
-                    nums[p1] = nums[i];
-                    nums[i] = temp;
+        while(root != null || !stack.isEmpty()){
+            if(root != null){
+                stack.push(root);
+                root = root.left;
+            }else{
+                TreeNode pop = stack.pop();
+                if(pop.val <= preOrderVal){
+                    return false;
                 }
-                p0++;
-                p1++;
-
+                preOrderVal = pop.val;
+                root = pop.right;
             }
 
         }
+        return true;
     }
 }

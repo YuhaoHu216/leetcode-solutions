@@ -1,49 +1,42 @@
 package question75;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.PriorityQueue;
-
 /**
- *  347. 前 K 个高频元素
- *  给你一个整数数组 nums 和一个整数 k ，请你返回其中出现频率前 k 高的元素。你可以按 任意顺序 返回答案。
- *  示例 1:
- *  输入: nums = [1,1,1,2,2,3], k = 2
- *  输出: [1,2]
- *  示例 2:
- *  输入: nums = [1], k = 1
- *  输出: [1]
+ * 75. 颜色分类
+ * 给定一个包含红色、白色和蓝色、共 n 个元素的数组 nums ，原地 对它们进行排序，使得相同颜色的元素相邻，并按照红色、白色、蓝色顺序排列。
+ * 我们使用整数 0、 1 和 2 分别表示红色、白色和蓝色。
+ * 必须在不使用库内置的 sort 函数的情况下解决这个问题。
+ * 示例 1：
+ * 输入：nums = [2,0,2,1,1,0]
+ * 输出：[0,0,1,1,2,2]
+ * 示例 2：
+ * 输入：nums = [2,0,1]
+ * 输出：[0,1,2]
  */
 class Solution {
-    public int[] topKFrequent(int[] nums, int k) {
+    public void sortColors(int[] nums) {
+        int n = nums.length;
+        int p0=0,p1 = 0;
 
-        // 将每个数字及其出现次数记录在map里
-        Map<Integer,Integer> map = new HashMap<>();
+        for(int i = 0; i < n; i++){
+            if(nums[i] == 1){
+                int temp = nums[i];
+                nums[i] = nums[p1];
+                nums[p1] = temp;
+                p1++;
+            }else if(nums[i] == 0){
+                int temp = nums[i];
+                nums[i] = nums[p0];
+                nums[p0] = temp;
+                if(p0 < p1){
+                    temp = nums[p1];
+                    nums[p1] = nums[i];
+                    nums[i] = temp;
+                }
+                p0++;
+                p1++;
 
-        for(int num : nums){
-            map.put(num,map.getOrDefault(num, 0) + 1);
-        }
-
-        // 创建优先队列(小顶堆),按元素value排列
-        PriorityQueue<Integer> heap = new PriorityQueue<>(
-                (a,b) -> map.get(a) - map.get(b)
-        );
-
-        // 将所有元素都入堆,但是堆中最多只保留K个元素
-        for(int num : map.keySet()){
-            heap.offer(num);
-            if(heap.size() > k){
-                heap.poll();
             }
+
         }
-
-        // 创建返回值
-        int[] result = new int[k];
-
-        for(int i = k - 1; i >= 0 ; i--){
-            result[i] = heap.poll();
-        }
-
-        return result;
     }
 }
