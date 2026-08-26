@@ -8,6 +8,7 @@
       <sourceFolder url="file://$MODULE_DIR$/medium" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/extend" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/PDD" isTestSource="false" />
+      <excludeFolder url="file://$MODULE_DIR$/.codegraph" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />

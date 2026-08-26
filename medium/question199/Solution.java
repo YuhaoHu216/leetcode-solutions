@@ -4,12 +4,13 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
+import java.util.Scanner;
 
 /**
  * 199. 二叉树的右视图
  * 给定一个二叉树的 根节点 root，想象自己站在它的右侧，按照从顶部到底部的顺序，返回从右侧所能看到的节点值。
  */
-class Solution {
+public class Solution {
     // 层序遍历 将每层的最后一个节点加入结果集合
     public List<Integer> rightSideView(TreeNode root) {
         Queue<TreeNode> queue = new LinkedList<>();
@@ -35,6 +36,43 @@ class Solution {
         }
         return result;
 
+    }
+
+    public static void main(String[] args) {
+        Scanner scanner = new Scanner(System.in);
+        // 输入二叉树的层序遍历序列，null 表示空节点，例如: 1 2 3 null 5 null 4
+        String line = scanner.nextLine();
+        scanner.close();
+
+        TreeNode root = buildTree(line);
+        List<Integer> result = new Solution().rightSideView(root);
+        System.out.println(result);
+    }
+
+    // 根据层序遍历字符串构建二叉树
+    private static TreeNode buildTree(String line) {
+        String[] nodes = line.trim().split("[,\\s]+");
+        if (nodes.length == 0 || nodes[0].isEmpty() || "null".equalsIgnoreCase(nodes[0])) {
+            return null;
+        }
+        Queue<TreeNode> queue = new LinkedList<>();
+        TreeNode root = new TreeNode(Integer.parseInt(nodes[0]));
+        queue.offer(root);
+        int i = 1;
+        while (!queue.isEmpty() && i < nodes.length) {
+            TreeNode node = queue.poll();
+            if (i < nodes.length && !"null".equalsIgnoreCase(nodes[i])) {
+                node.left = new TreeNode(Integer.parseInt(nodes[i]));
+                queue.offer(node.left);
+            }
+            i++;
+            if (i < nodes.length && !"null".equalsIgnoreCase(nodes[i])) {
+                node.right = new TreeNode(Integer.parseInt(nodes[i]));
+                queue.offer(node.right);
+            }
+            i++;
+        }
+        return root;
     }
 }
 
