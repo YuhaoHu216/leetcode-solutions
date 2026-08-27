@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>207. 课程表 · 拓扑排序可视化</title>
+<style>
+  * { box-sizing: border-box; }
+  body { font-family: "Microsoft YaHei", "PingFang SC", sans-serif; background: #f2f4f8; margin: 0; color: #2b3a4a; }
+  .wrap { max-width: 960px; margin: 0 auto; padding: 18px; }
+  h1 { font-size: 21px; margin: 4px 0 10px; }
+  .legend { font-size: 13px; color: #5a6b7d; }
+  .legend span { display: inline-block; margin-right: 16px; }
+  .dot { display: inline-block; width: 12px; height: 12px; border-radius: 50%; margin-right: 4px; vertical-align: -1px; border: 1px solid rgba(0,0,0,.15); }
+  .toolbar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin: 12px 0; }
+  button { padding: 7px 16px; cursor: pointer; border: none; border-radius: 7px; background: #4d96ff; color: #fff; font-size: 14px; transition: background .15s; }
+  button:hover { background: #3a7be0; }
+  button.secondary { background: #9db2c6; }
+  button.secondary:hover { background: #829bb2; }
+  label { font-size: 13px; color: #5a6b7d; display: flex; align-items: center; gap: 6px; }
+  #canvas { background: #fff; border: 1px solid #dde3ec; border-radius: 12px; display: block; box-shadow: 0 2px 6px rgba(0,0,0,.04); }
+  .panel { background: #fff; border: 1px solid #dde3ec; border-radius: 12px; padding: 12px 16px; margin-top: 12px; line-height: 1.8; font-size: 14px; }
+  .panel b { color: #2b3a4a; }
+  .badge { display: inline-block; background: #6bcb77; color: #fff; border-radius: 6px; padding: 1px 9px; margin-right: 6px; font-size: 13px; }
+  .badge.plain { background: #eef3fb; color: #5a6b7d; }
+  .inputArea { background: #fff; border: 1px solid #dde3ec; border-radius: 12px; padding: 12px 16px; margin-top: 12px; font-size: 14px; }
+  textarea { width: 100%; height: 96px; font-family: Consolas, monospace; font-size: 13px; margin: 8px 0; border: 1px solid #dde3ec; border-radius: 6px; padding: 8px; }
+  #msg { font-size: 13px; color: #379237; margin-left: 8px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>207. 课程表 · 拓扑排序（Kahn 算法）可视化</h1>
+
+  <div class="legend">
+    <span><span class="dot" style="background:#ffe08a"></span>可学(入队)</span>
+    <span><span class="dot" style="background:#ff9f43"></span>刚解锁(入度归0)</span>
+    <span><span class="dot" style="background:#4d96ff"></span>正在学习</span>
+    <span><span class="dot" style="background:#6bcb77"></span>已学完</span>
+    <span><span class="dot" style="background:#f5a4a4"></span>成环(学不了)</span>
+    <span>箭头：先修课 → 后修课</span>
+  </div>
+
+  <div class="toolbar">
+    <button id="btnPlay">▶ 自动播放</button>
+    <button id="btnStep" class="secondary">⏭ 单步</button>
+    <button id="btnBack" class="secondary">⏮ 上一步</button>
+    <button id="btnReset" class="secondary">↻ 重置</button>
+    <label>速度
+      <input type="range" id="speed" min="200" max="2500" step="100" value="1200">
+      <span id="speedLabel">1.2s/步</span>
+    </label>
+  </div>
+
+  <canvas id="canvas" width="920" height="540"></canvas>
+
+  <div class="panel">
+    <div><b>学习顺序：</b><span id="order"></span></div>
+    <div><b>当前队列（可学）：</b><span id="queue"></span></div>
+    <div id="detail" style="color:#5a6b7d"></div>
+  </div>
+
+  <div class="inputArea">
+    <b>自定义输入</b>（第一行课程总数，之后每两个数字一组：“要学ai 先学bi”；第二行可写依赖对数量【写错会自动提示并按实际解析】，用空格或逗号分隔）
+    <textarea id="input"></textarea>
+    <button id="btnLoad">加载数据</button><span id="msg"></span>
+  </div>
+</div>
+
+<script>
+"use strict";
+// ============ 全局状态 ============
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+
+let numCourses = 0;
+let inDegree = [];      // 每门课的入度（还需先修的课程数）
+let successors = [];    // 每门课修完后解锁的后修课程列表
+let nodes = [];         // 布局用：{id, x, y}
+let edges = [];         // {from:先修, to:后修}
+let steps = [];         // 预计算的每一步快照
+let cur = 0;            // 当前步索引
+let timer = null;
+
+const DEFAULT_INPUT = "5\n4\n0 1\n0 2\n1 3\n2 3";
+
+// ============ 数据加载与图构建 ============
+function loadData(text) {
+  const { n, pairs, warning } = parseInput(text);
+
+  inDegree = new Array(n).fill(0);
+  successors = Array.from({ length: n }, () => []);
+  for (const [ai, bi] of pairs) {
+    inDegree[ai]++;          // ai 多一个先修
+    successors[bi].push(ai); // 修完 bi 才能解锁 ai
+  }
+
+  numCourses = n;
+  nodes = [];
+  for (let i = 0; i < n; i++) nodes.push({ id: i, x: 0, y: 0 });
+  edges = [];
+  for (let i = 0; i < n; i++) for (const to of successors[i]) edges.push({ from: i, to });
+
+  layout();
+  steps = computeSteps();
+  cur = 0;
+  render();
+  return warning; // 返回数量不一致的提示，由调用方显示
+}
+
+/**
+ * 解析输入：
+ *   第一行：课程总数 n
+ *   之后：每两个数字一组，表示"要学 ai，必须先学 bi"
+ *   （第二行可写依赖对数做校验；写错了也不影响解析，只是会给提示）
+ * 返回：{ n, pairs, warning }
+ */
+function parseInput(text) {
+  const nums = text.trim().split(/[\s,]+/).map(Number);
+  if (nums.length < 3) throw new Error('至少需要：课程总数 + 一组依赖（共 3 个数字）');
+  const n = nums[0];
+  if (!Number.isInteger(n) || n <= 0) throw new Error('课程总数不合法');
+
+  const declared = nums[1]; // 第二行：声明的依赖对数（仅用于校验提示）
+  const pairs = [];
+  for (let i = 2; i + 1 < nums.length; i += 2) pairs.push([nums[i], nums[i + 1]]);
+
+  let warning = '';
+  if (Number.isInteger(declared) && declared !== pairs.length) {
+    warning = '⚠ 声明 ' + declared + ' 对，实际输入 ' + pairs.length + ' 对，已按实际解析。';
+  }
+  pairs.forEach(([ai, bi], idx) => {
+    if (!Number.isInteger(ai) || !Number.isInteger(bi) || ai < 0 || ai >= n || bi < 0 || bi >= n) {
+      throw new Error('课程编号越界（应为 0~' + (n - 1) + '），第 ' + (idx + 1) + ' 组');
+    }
+  });
+  return { n, pairs, warning };
+}
+
+// ============ 力导向布局（简单斥力+弹簧引力） ============
+function layout() {
+  const n = nodes.length;
+  if (n === 0) return;
+  const k = Math.sqrt(920 * 540 / n);
+  // 初始分布在圆周上
+  nodes.forEach((nd, i) => {
+    const a = i / n * 2 * Math.PI;
+    nd.x = 460 + 180 * Math.cos(a);
+    nd.y = 270 + 150 * Math.sin(a);
+  });
+  let temp = 1;
+  for (let it = 0; it < 300; it++) {
+    const disp = nodes.map(() => ({ x: 0, y: 0 }));
+    // 节点间斥力
+    for (let i = 0; i < n; i++) {
+      for (let j = 0; j < n; j++) {
+        if (i === j) continue;
+        let dx = nodes[i].x - nodes[j].x, dy = nodes[i].y - nodes[j].y;
+        let d = Math.sqrt(dx * dx + dy * dy) || 0.01;
+        const f = k * k / d;
+        disp[i].x += (dx / d) * f;
+        disp[i].y += (dy / d) * f;
+      }
+    }
+    // 边的弹簧引力
+    for (const e of edges) {
+      const a = nodes[e.from], b = nodes[e.to];
+      let dx = a.x - b.x, dy = a.y - b.y;
+      let d = Math.sqrt(dx * dx + dy * dy) || 0.01;
+      const f = d * d / k;
+      disp[e.from].x -= (dx / d) * f; disp[e.from].y -= (dy / d) * f;
+      disp[e.to].x += (dx / d) * f;   disp[e.to].y += (dy / d) * f;
+    }
+    nodes.forEach((nd, i) => {
+      const d = Math.sqrt(disp[i].x ** 2 + disp[i].y ** 2) || 0.01;
+      nd.x += (disp[i].x / d) * Math.min(d, temp);
+      nd.y += (disp[i].y / d) * Math.min(d, temp);
+    });
+    temp *= 0.96; // 降温
+  }
+  // 归一化到画布中央
+  let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+  nodes.forEach(nd => {
+    minX = Math.min(minX, nd.x); maxX = Math.max(maxX, nd.x);
+    minY = Math.min(minY, nd.y); maxY = Math.max(maxY, nd.y);
+  });
+  const w = maxX - minX || 1, h = maxY - minY || 1;
+  const scale = Math.min(760 / w, 420 / h);
+  const ox = (920 - (maxX + minX) * scale) / 2;
+  const oy = (540 - (maxY + minY) * scale) / 2;
+  nodes.forEach(nd => { nd.x = nd.x * scale + ox; nd.y = nd.y * scale + oy; });
+}
+
+// ============ 预计算拓扑排序的每一步 ============
+function computeSteps() {
+  const deg = [...inDegree];
+  const q = [];
+  for (let i = 0; i < numCourses; i++) if (deg[i] === 0) q.push(i);
+  const stepsArr = [];
+  stepsArr.push({ round: 0, course: -1, order: [], queue: [...q], deg: [...deg], changes: [] });
+
+  const order = [];
+  let round = 0;
+  while (q.length) {
+    round++;
+    const c = q.shift();           // 出队：入度为 0 的课，可以学
+    order.push(c);
+    const changes = [];
+    for (const next of successors[c]) { // 修完 c，解锁它的后修课
+      deg[next]--;
+      changes.push({ next, from: deg[next] + 1, to: deg[next] });
+      if (deg[next] === 0) q.push(next);
+    }
+    stepsArr.push({ round, course: c, order: [...order], queue: [...q], deg: [...deg], changes });
+  }
+  const cycle = order.length !== numCourses; // 没学完 = 存在环
+  stepsArr.push({ round: round + 1, course: -1, order: [...order], queue: [], deg: [...deg], changes: [], done: true, cycle });
+  return stepsArr;
+}
+
+// ============ 渲染 ============
+function render() {
+  const s = steps[cur];
+  ctx.clearRect(0, 0, 920, 540);
+
+  // --- 边 ---
+  const hlSet = {};
+  if (s.course >= 0) s.changes.forEach(ch => hlSet[s.course + '-' + ch.next] = 1);
+  for (const e of edges) {
+    const a = nodes[e.from], b = nodes[e.to];
+    const isHl = !!hlSet[e.from + '-' + e.to];
+    ctx.strokeStyle = isHl ? '#ff9f43' : '#b8c4d4';
+    ctx.lineWidth = isHl ? 3 : 1.4;
+    drawArrow(a.x, a.y, b.x, b.y, 26, isHl);
+  }
+
+  // --- 节点 ---
+  const learned = new Set(s.order);
+  const inQ = new Set(s.queue);
+  const newly = new Set(s.changes.filter(c => c.to === 0).map(c => c.next));
+  for (const nd of nodes) {
+    const i = nd.id;
+    let fill = '#e8eef5', stroke = '#8fa6bd', lw = 1.5;
+    if (i === s.course)              { fill = '#4d96ff'; stroke = '#1f5eff'; lw = 3; }   // 正在学习
+    else if (learned.has(i))         { fill = '#6bcb77'; stroke = '#379237'; }          // 已学完
+    else if (newly.has(i))           { fill = '#ff9f43'; stroke = '#d9711a'; }          // 刚解锁入队
+    else if (inQ.has(i))             { fill = '#ffe08a'; stroke = '#d9a400'; }          // 在队列可学
+    if (s.done && s.cycle && !learned.has(i)) { fill = '#f5a4a4'; stroke = '#d64545'; } // 成环学不了
+
+    ctx.beginPath();
+    ctx.arc(nd.x, nd.y, 26, 0, Math.PI * 2);
+    ctx.fillStyle = fill;
+    ctx.fill();
+    ctx.lineWidth = lw;
+    ctx.strokeStyle = stroke;
+    ctx.stroke();
+
+    ctx.fillStyle = '#1b2733';
+    ctx.font = 'bold 15px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(i, nd.x, nd.y - 5);
+
+    ctx.font = '11px sans-serif';
+    ctx.fillStyle = learned.has(i) ? '#2c5c2c' : '#5a6b7d';
+    ctx.fillText(learned.has(i) ? '✓ 已学' : '入度 ' + s.deg[i], nd.x, nd.y + 15);
+  }
+
+  // --- 底部信息面板 ---
+  const orderEl = document.getElementById('order');
+  orderEl.innerHTML = s.order.length
+    ? s.order.map(i => '<span class="badge">' + i + '</span>').join('')
+    : '<span class="badge plain">—</span>';
+  document.getElementById('queue').textContent = s.queue.length ? s.queue.join(', ') : '（空）';
+
+  let detail = '';
+  if (s.round === 0) {
+    detail = '<b>初始化：</b>把所有入度为 0 的课程加入队列（这些课不依赖任何先修，可直接学）。';
+  } else if (s.course >= 0) {
+    detail = '<b>第 ' + s.round + ' 轮：</b>学习课程 <b>' + s.course + '</b>';
+    if (s.changes.length) {
+      detail += ' → ' + s.changes.map(c =>
+        '课程 ' + c.next + ' 入度 ' + c.from + '→' + c.to + (c.to === 0 ? '，解锁入队！' : '，还需等待先修')
+      ).join('；');
+    } else {
+      detail += '（它没有解锁任何后修课）';
+    }
+  } else if (s.done) {
+    detail = s.cycle
+      ? '<b>结束：</b>还剩 ' + (numCourses - s.order.length) + ' 门课永远学不了（存在环，互相依赖）✘'
+      : '<b>结束：</b>全部 ' + numCourses + ' 门课学习完成 ✔';
+  }
+  document.getElementById('detail').innerHTML = detail;
+}
+
+// 画带箭头的边（从先修节点边缘到后修节点边缘）
+function drawArrow(x1, y1, x2, y2, r, isHl) {
+  const dx = x2 - x1, dy = y2 - y1;
+  const d = Math.sqrt(dx * dx + dy * dy) || 0.01;
+  const ux = dx / d, uy = dy / d;
+  const sx = x1 + ux * r, sy = y1 + uy * r;
+  const ex = x2 - ux * r, ey = y2 - uy * r;
+  ctx.beginPath();
+  ctx.moveTo(sx, sy);
+  ctx.lineTo(ex, ey);
+  ctx.stroke();
+  const head = 10, angle = Math.atan2(dy, dx);
+  ctx.beginPath();
+  ctx.moveTo(ex, ey);
+  ctx.lineTo(ex - head * Math.cos(angle - 0.4), ey - head * Math.sin(angle - 0.4));
+  ctx.lineTo(ex - head * Math.cos(angle + 0.4), ey - head * Math.sin(angle + 0.4));
+  ctx.closePath();
+  ctx.fillStyle = isHl ? '#ff9f43' : '#b8c4d4';
+  ctx.fill();
+}
+
+// ============ 控制按钮 ============
+const btnPlay = document.getElementById('btnPlay');
+function speedVal() { return parseInt(document.getElementById('speed').value); }
+
+function stop() {
+  clearInterval(timer);
+  timer = null;
+  btnPlay.textContent = '▶ 自动播放';
+}
+function startAuto() {
+  btnPlay.textContent = '⏸ 暂停';
+  timer = setInterval(tick, speedVal());
+}
+function tick() {
+  if (cur < steps.length - 1) { cur++; render(); }
+  else stop();
+}
+
+btnPlay.onclick = () => { timer ? stop() : startAuto(); };
+document.getElementById('btnStep').onclick = () => { stop(); if (cur < steps.length - 1) { cur++; render(); } };
+document.getElementById('btnBack').onclick = () => { stop(); if (cur > 0) { cur--; render(); } };
+document.getElementById('btnReset').onclick = () => { stop(); cur = 0; render(); };
+
+const speedSlider = document.getElementById('speed');
+speedSlider.oninput = () => {
+  document.getElementById('speedLabel').textContent = (speedVal() / 1000).toFixed(1) + 's/步';
+  if (timer) { stop(); startAuto(); } // 播放中改速度则用新速度重播
+};
+
+document.getElementById('btnLoad').onclick = () => {
+  stop();
+  const t = document.getElementById('input').value.trim();
+  const msg = document.getElementById('msg');
+  if (!t) { msg.textContent = '请输入数据'; msg.style.color = '#d64545'; return; }
+  try {
+    const warning = loadData(t);
+    msg.textContent = warning || '✅ 已加载';
+    msg.style.color = warning ? '#d9711a' : '#379237';
+  } catch (e) {
+    msg.textContent = '❌ 解析失败：' + e.message;
+    msg.style.color = '#d64545';
+  }
+};
+
+// ============ 启动 ============
+document.getElementById('input').value = DEFAULT_INPUT;
+loadData(DEFAULT_INPUT);
+</script>
+</body>
+</html>
