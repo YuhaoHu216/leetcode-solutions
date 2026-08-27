@@ -1,6 +1,7 @@
 package question52;
 
 import java.util.LinkedList;
+import java.util.Scanner;
 
 /**
  * 994.腐烂的橘子
@@ -10,12 +11,20 @@ import java.util.LinkedList;
  * 值 2 代表腐烂的橘子。
  * 每分钟，腐烂的橘子 周围 4 个方向上相邻 的新鲜橘子都会腐烂。
  * 返回 直到单元格中没有新鲜橘子为止所必须经过的最小分钟数。如果不可能，返回 -1 。
+ *
+ * ACM 模式：
+ * 输入：第一行为两个整数 m n，表示网格的行数和列数；接下来 m 行，每行 n 个整数（0 空单元格 / 1 新鲜橘子 / 2 腐烂橘子），例如：
+ * 3 3
+ * 2 1 1
+ * 1 1 0
+ * 0 1 1
+ * 输出：所需的最小分钟数（如果不可能返回 -1），例如：4
  */
 
 class Solution {
     public int orangesRotting(int[][] grid) {
 
-        // 用于记录每轮感染
+        // 用于记录感染轮数
         int step = 0;
 
         // 用于烂橘子感染周边,对应分别为{-1,0},{1,0},{0,-1},{0,1}:上,下,左,右
@@ -63,5 +72,23 @@ class Solution {
             return -1;
         }
         return step;
+    }
+
+    public static void main(String[] args) {
+        Scanner scanner = new Scanner(System.in);
+        // 第一行：m n，网格的行数和列数
+        int m = scanner.nextInt();
+        int n = scanner.nextInt();
+        // 接下来 m 行，每行 n 个整数，0 空单元格 / 1 新鲜橘子 / 2 腐烂橘子
+        int[][] grid = new int[m][n];
+        for (int i = 0; i < m; i++) {
+            for (int j = 0; j < n; j++) {
+                grid[i][j] = scanner.nextInt();
+            }
+        }
+        scanner.close();
+
+        int result = new Solution().orangesRotting(grid);
+        System.out.println(result);
     }
 }
