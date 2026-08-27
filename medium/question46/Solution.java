@@ -2,9 +2,10 @@ package question46;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Scanner;
 
 /**
- * 46. 全排列
+ * 46.全排列
  * 给定一个不含重复数字的数组 nums ，返回其 所有可能的全排列 。你可以 按任意顺序 返回答案。
  * 示例 1：
  * 输入：nums = [1,2,3]
@@ -16,6 +17,11 @@ import java.util.List;
  * 输入：nums = [1]
  * 输出：[[1]]
  *
+ * ACM 模式：
+ * 输入：第一行为数组长度 n；第二行为 n 个整数，表示数组元素。例如：
+ * 3
+ * 1 2 3
+ * 输出：所有可能的全排列，例如：[[1, 2, 3], [1, 3, 2], [2, 1, 3], [2, 3, 1], [3, 1, 2], [3, 2, 1]]
  */
 class Solution {
     public List<List<Integer>> permute(int[] nums) {
@@ -49,5 +55,20 @@ class Solution {
                 visited[i] = false;
             }
         }
+    }
+
+    public static void main(String[] args) {
+        Scanner scanner = new Scanner(System.in);
+        // 第一行：数组长度 n
+        int n = scanner.nextInt();
+        // 第二行：n 个整数，表示数组元素
+        int[] nums = new int[n];
+        for (int i = 0; i < n; i++) {
+            nums[i] = scanner.nextInt();
+        }
+        scanner.close();
+
+        List<List<Integer>> result = new Solution().permute(nums);
+        System.out.println(result);
     }
 }
