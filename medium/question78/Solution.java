@@ -2,6 +2,7 @@ package question78;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Scanner;
 
 /**
  * 78. 子集
@@ -13,6 +14,12 @@ import java.util.List;
  * 示例 2：
  * 输入：nums = [0]
  * 输出：[[],[0]]
+ *
+ * ACM 模式：
+ * 输入：第一行为数组长度 n；第二行为 n 个整数，表示数组元素。例如：
+ * 3
+ * 1 2 3
+ * 输出：所有可能的子集，例如：[[], [1], [2], [1, 2], [3], [1, 3], [2, 3], [1, 2, 3]]
  */
 class Solution {
     public List<List<Integer>> subsets(int[] nums) {
@@ -30,24 +37,40 @@ class Solution {
         }
         return result;
     }
-}
 
-class Solution2 {
-    private List<List<Integer>> res;
-    public List<List<Integer>> subsets(int[] nums) {
-        res = new ArrayList<>();
-        backTracking(nums, 0, new ArrayList<>());
-        return res;
-    }
+    class Solution2 {
+        private List<List<Integer>> res;
+        public List<List<Integer>> subsets(int[] nums) {
+            res = new ArrayList<>();
+            backTracking(nums, 0, new ArrayList<>());
+            return res;
+        }
 
-    public void backTracking(int[] nums,int index,List<Integer> list) {
-        //任何一个能进入递归的都一定是一个正确的集合，因为源数组每个元素都不相同，并且1只能和2或3组成集合,2只能和3组成集合,3只能和自己，所以进入的一定是唯一的
-        res.add(new ArrayList<>(list));
-        //按层遍历
-        for (int i = index; i < nums.length; i++) {
-            list.add(nums[i]);
-            backTracking(nums,i+1,list);//递归
-            list.remove(list.size()-1);//回溯
+        public void backTracking(int[] nums,int index,List<Integer> list) {
+            //任何一个能进入递归的都一定是一个正确的集合，因为源数组每个元素都不相同，并且1只能和2或3组成集合,2只能和3组成集合,3只能和自己，所以进入的一定是唯一的
+            res.add(new ArrayList<>(list));
+            //按层遍历
+            for (int i = index; i < nums.length; i++) {
+                list.add(nums[i]);
+                backTracking(nums,i+1,list);//递归
+                list.remove(list.size()-1);//回溯
+            }
         }
     }
+
+    public static void main(String[] args) {
+        Scanner scanner = new Scanner(System.in);
+        // 第一行：数组长度 n
+        int n = scanner.nextInt();
+        // 第二行：n 个整数，表示数组元素
+        int[] nums = new int[n];
+        for (int i = 0; i < n; i++) {
+            nums[i] = scanner.nextInt();
+        }
+        scanner.close();
+
+        List<List<Integer>> result = new Solution().subsets(nums);
+        System.out.println(result);
+    }
 }
+
