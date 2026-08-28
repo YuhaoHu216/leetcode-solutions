@@ -2,14 +2,21 @@ package question17;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Scanner;
 
 /**
  * 17. 电话号码的字母组合
  * 给定一个仅包含数字 2-9 的字符串，返回所有它能表示的字母组合。答案可以按 任意顺序 返回。
  * 给出数字到字母的映射如下（与电话按键相同）。注意 1 不对应任何字母。
  * String[] letter_map = {" ","*","abc","def","ghi","jkl","mno","pqrs","tuv","wxyz"};
+ *
+ * ACM 模式：
+ * 输入：一行字符串，仅包含数字 2-9。例如：
+ * 23
+ * 输出：所有可能的字母组合，例如：[ad, ae, af, bd, be, bf, cd, ce, cf]
  */
 class Solution {
+    // 注意 StringBuilder 相关函数的用法
 
     // 创建数字对应字母映射(数组比集合更省时间)
     String[] letter_map = {"","*","abc","def","ghi","jkl","mno","pqrs","tuv","wxyz"};
@@ -44,5 +51,15 @@ class Solution {
             backTracking(result,str,index+1,digits);    // 递归
             str.deleteCharAt(str.length() - 1);         //回溯
         }
+    }
+
+    public static void main(String[] args) {
+        Scanner scanner = new Scanner(System.in);
+        // 一行字符串，仅包含数字 2-9
+        String digits = scanner.next();
+        scanner.close();
+
+        List<String> result = new Solution().letterCombinations(digits);
+        System.out.println(result);
     }
 }
