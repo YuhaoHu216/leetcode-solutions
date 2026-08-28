@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>39. 组合总和 · 回溯算法可视化</title>
+<style>
+  :root{
+    --bg:#f4f6fb; --card:#ffffff; --primary:#4f8cff; --primary-strong:#2d6bff;
+    --text:#1f2937; --muted:#6b7280; --border:#e5e7eb;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    font-family:"Segoe UI","Microsoft YaHei",system-ui,sans-serif;
+    background:linear-gradient(135deg,#eef2fb 0%,#f7f9ff 100%);
+    color:var(--text); min-height:100vh;
+  }
+  header{
+    display:flex;align-items:baseline;gap:12px;padding:18px 28px;
+    background:var(--card); border-bottom:1px solid var(--border);
+    box-shadow:0 1px 6px rgba(31,41,55,.06); position:sticky;top:0;z-index:5;
+  }
+  header h1{font-size:20px;font-weight:700}
+  header h1 span{color:var(--primary)}
+  header .sub{color:var(--muted);font-size:13px}
+  .controls{
+    display:flex;flex-wrap:wrap;align-items:center;gap:12px;padding:14px 28px;
+    background:var(--card); border-bottom:1px solid var(--border);
+  }
+  .controls label{font-size:13px;color:var(--muted);white-space:nowrap}
+  .controls input[type=text],.controls input[type=number]{
+    width:130px;padding:7px 10px;border:1px solid var(--border);border-radius:8px;font-size:14px;
+    outline:none;transition:border .15s;
+  }
+  .controls input:focus{border-color:var(--primary)}
+  .controls button{
+    padding:8px 16px;border:none;border-radius:8px;font-size:14px;cursor:pointer;
+    background:#eef1f6;color:var(--text);transition:all .15s;
+  }
+  .controls button:hover{background:#e2e8f0}
+  .controls button.primary{background:var(--primary);color:#fff}
+  .controls button.primary:hover{background:var(--primary-strong)}
+  .controls button.active{background:var(--primary);color:#fff}
+  .controls select{
+    padding:7px 10px;border:1px solid var(--border);border-radius:8px;font-size:13px;outline:none;
+  }
+  .controls .speed{display:flex;align-items:center;gap:6px}
+  .controls input[type=range]{width:110px;accent-color:var(--primary)}
+  main{display:flex;gap:16px;padding:18px 28px;align-items:stretch}
+  .tree-wrap{
+    flex:1;background:var(--card);border:1px solid var(--border);border-radius:14px;
+    overflow:auto;padding:14px; min-height:520px; box-shadow:0 2px 10px rgba(31,41,55,.05);
+  }
+  .tree-wrap svg{display:block}
+  .side{width:340px;flex-shrink:0;display:flex;flex-direction:column;gap:14px}
+  .card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:16px;box-shadow:0 2px 10px rgba(31,41,55,.05)}
+  .card h3{font-size:13px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px;font-weight:600}
+  .status-box{min-height:64px;display:flex;align-items:center;padding:12px 14px;border-radius:10px;background:#f8faff;border:1px solid #e3ecff;font-size:14px;line-height:1.6}
+  .progress{margin:10px 0 4px;height:6px;background:#eef1f6;border-radius:99px;overflow:hidden}
+  .progress i{display:block;height:100%;background:var(--primary);transition:width .15s;border-radius:99px}
+  .step-count{font-size:12px;color:var(--muted);text-align:right}
+  .cur-path{display:flex;flex-wrap:wrap;align-items:center;gap:6px;min-height:40px}
+  .chip{display:inline-flex;align-items:center;padding:5px 12px;border-radius:99px;background:#eef4ff;color:var(--primary-strong);font-size:14px;font-weight:600}
+  .chip.plus{background:none;color:var(--muted);padding:0;font-weight:600}
+  .empty{color:var(--muted);font-size:13px}
+  .results{display:flex;flex-wrap:wrap;gap:8px}
+  .result-card{
+    padding:6px 12px;border-radius:8px;background:#f0fdf4;border:1px solid #bbf7d0;
+    color:#166534;font-size:13px;font-weight:600;
+  }
+  .legend{display:flex;flex-wrap:wrap;gap:14px;font-size:12px;color:var(--muted)}
+  .legend .dot{display:inline-block;width:12px;height:12px;border-radius:50%;margin-right:4px;vertical-align:-1px}
+  @keyframes pulse{0%{opacity:.45}50%{opacity:1}100%{opacity:.45}}
+  @media (max-width:900px){ main{flex-direction:column} .side{width:auto} }
+</style>
+</head>
+<body>
+<header>
+  <h1>39. 组合总和 <span>回溯可视化</span></h1>
+  <div class="sub">LeetCode 39 · 候选数可无限重复选取，找出所有和为 target 的组合</div>
+</header>
+
+<div class="controls">
+  <label>候选数组</label>
+  <input type="text" id="candidates" value="2,3,6,7" placeholder="如: 2,3,6,7">
+  <label>目标值</label>
+  <input type="number" id="target" value="7" min="1">
+  <label>示例</label>
+  <select id="preset">
+    <option value="">-- 选择示例 --</option>
+    <option value="1">示例1: [2,3,6,7] → 7</option>
+    <option value="2">示例2: [2,3,5] → 8</option>
+  </select>
+  <button class="primary" id="btnStart">▶ 开始</button>
+  <button id="btnPrev">⏮ 上一步</button>
+  <button id="btnNext">⏭ 下一步</button>
+  <button id="btnPlay">▶ 自动播放</button>
+  <div class="speed">
+    <label>速度</label>
+    <input type="range" id="speed" min="1" max="10" value="5">
+  </div>
+</div>
+
+<main>
+  <div class="tree-wrap" id="treeWrap">
+    <svg id="treeSvg" width="100%" height="520"></svg>
+  </div>
+  <div class="side">
+    <div class="card">
+      <h3>算法状态</h3>
+      <div class="status-box" id="status">页面已加载，正在初始化…</div>
+      <div class="progress"><i id="progressBar" style="width:0%"></i></div>
+      <div class="step-count" id="stepCount">0 / 0</div>
+    </div>
+    <div class="card">
+      <h3>当前组合</h3>
+      <div class="cur-path" id="curPath"><span class="empty">（空）</span></div>
+      <div style="margin-top:10px;font-size:13px;color:var(--muted)" id="curTarget"></div>
+    </div>
+    <div class="card">
+      <h3>已找到的组合</h3>
+      <div class="results" id="results"><span class="empty">暂无</span></div>
+    </div>
+    <div class="card">
+      <h3>图例</h3>
+      <div class="legend">
+        <span><span class="dot" style="background:#4f8cff"></span>当前节点</span>
+        <span><span class="dot" style="background:#22c55e"></span>命中组合</span>
+        <span><span class="dot" style="background:#f1f3f7;border:1px dashed #c4ccd9"></span>剪枝跳过</span>
+        <span><span class="dot" style="background:#e8f0ff"></span>已访问</span>
+      </div>
+      <div style="margin-top:10px;font-size:12px;color:var(--muted)">圆圈内为「剩余目标」，下方为「已选组合」。支持 ← → 键步进，空格播放/暂停。</div>
+    </div>
+  </div>
+</main>
+
+<script>
+'use strict';
+const svgns='http://www.w3.org/2000/svg';
+const $=id=>document.getElementById(id);
+const NX=58, NY=88, X0=40, Y0=44, R=21;   // 树布局参数
+
+// ---------- 全局状态 ----------
+let candidates=[], target=0, root=null, events=[], frame=0;
+let nodeById=new Map(), visited=new Set(), activeId=null;
+let curPath=[], foundResults=[], desc='';
+let playing=false, timer=null;
+
+// ---------- 解析输入 ----------
+function parseInput(){
+  const raw=$('candidates').value.split(/[,，\s]+/).map(s=>s.trim()).filter(s=>s!=='');
+  candidates=raw.map(Number).filter(c=>Number.isFinite(c)&&c>0);
+  target=parseInt($('target').value,10);
+  if(!candidates.length || !Number.isFinite(target) || target<=0){
+    alert('请输入有效的候选数组（正整数）和目标值（正整数）');
+    return false;
+  }
+  return true;
+}
+
+// ---------- 构建回溯树 ----------
+function buildTree(){
+  nodeById=new Map(); let id=0;
+  function build(cand,tgt,index,path,depth,parent){
+    const node={id:id++,index,target:tgt,depth,path:[...path],edges:[],isFound:tgt===0,parent,pruned:false};
+    nodeById.set(node.id,node);
+    if(node.isFound) return node;
+    for(let i=index;i<cand.length;i++){
+      const c=cand[i];
+      if(c<=tgt){
+        const child=build(cand,tgt-c,i,path.concat(c),depth+1,node);
+        node.edges.push({candidate:c,child,pruned:false});
+      }else{
+        const leaf={id:id++,index:i,target:tgt-c,depth:depth+1,path:path.concat(c),edges:[],isFound:false,parent:node,pruned:true};
+        nodeById.set(leaf.id,leaf);
+        node.edges.push({candidate:c,child:leaf,pruned:true});
+      }
+    }
+    return node;
+  }
+  root=build(candidates,target,0,[],0,null);
+}
+
+// ---------- 生成事件序列（与真实算法同步） ----------
+function collectEvents(){
+  events=[];
+  (function walk(node){
+    events.push({type:'enter',node});
+    if(node.isFound){ events.push({type:'found',node}); return; }
+    for(const e of node.edges){
+      if(e.pruned){ events.push({type:'skip',node:e.child,parent:node,candidate:e.candidate}); continue; }
+      events.push({type:'select',node:e.child,parent:node,candidate:e.candidate});
+      walk(e.child);
+      events.push({type:'pop',node,e:e.candidate});
+    }
+  })(root);
+  events.push({type:'done',root});
+}
+
+// ---------- 布局（叶子按中序占位，父节点居中） ----------
+function layout(){
+  let order=0;
+  (function assign(node){
+    if(node.edges.length===0){ node._x=order++; node._w=1; return node._x; }
+    let first=null,last=null;
+    for(const e of node.edges){ const x=assign(e.child); if(first===null)first=x; last=x; }
+    node._x=(first+last)/2;
+    node._w=node.edges.reduce((s,e)=>s+e.child._w,0);
+    return node._x;
+  })(root);
+  let maxDepth=0;
+  (function md(n){ if(n.depth>maxDepth)maxDepth=n.depth; n.edges.forEach(e=>md(e.child)); })(root);
+  const width=Math.max(order*NX+80, 620);
+  const height=Math.max(maxDepth*NY+110, 420);
+  return {width,height};
+}
+
+// ---------- 应用一个事件（驱动算法状态） ----------
+function apply(ev){
+  switch(ev.type){
+    case 'enter':
+      visited.add(ev.node.id); activeId=ev.node.id;
+      desc=`进入节点：剩余目标 ${ev.node.target}，当前组合 [${ev.node.path.length?ev.node.path.join(', '):'空'}]`;
+      break;
+    case 'found':
+      foundResults.push(ev.node.path);
+      desc=`🎉 剩余目标为 0，命中组合 [${ev.node.path.join(', ')}] = ${target}`;
+      break;
+    case 'select':
+      curPath.push(ev.candidate); visited.add(ev.node.id); activeId=ev.node.id;
+      desc=`选取 ${ev.candidate} → 剩余目标 ${ev.node.target}`;
+      break;
+    case 'pop':
+      curPath.pop(); activeId=ev.node.id;
+      desc=`回溯：撤下 ${ev.e}`;
+      break;
+    case 'skip':
+      visited.add(ev.node.id); activeId=ev.node.id;
+      desc=`✂️ 剪枝：${ev.candidate} > 剩余目标 ${ev.parent.target}，跳过`;
+      break;
+    case 'done':
+      activeId=null;
+      desc=`✅ 完成！共找到 ${foundResults.length} 种组合`;
+      break;
+  }
+}
+
+// ---------- 渲染 ----------
+function render(){
+  const total=events.length-1;
+  $('stepCount').textContent=`${frame} / ${total}`;
+  $('progressBar').style.width=(total>0?(frame/total)*100:0)+'%';
+  $('status').textContent=desc;
+
+  // 当前组合
+  const cp=$('curPath'); cp.innerHTML='';
+  if(curPath.length===0){ cp.innerHTML='<span class="empty">（空）</span>'; }
+  else{
+    curPath.forEach((v,i)=>{
+      if(i>0){ const s=document.createElement('span'); s.className='chip plus'; s.textContent='+'; cp.appendChild(s); }
+      const s=document.createElement('span'); s.className='chip'; s.textContent=v; cp.appendChild(s);
+    });
+  }
+  const sum=curPath.reduce((a,b)=>a+b,0);
+  $('curTarget').textContent=`当前和 ${sum}，剩余目标 ${target-sum}`;
+
+  // 已找到组合
+  const rs=$('results'); rs.innerHTML='';
+  if(foundResults.length===0){ rs.innerHTML='<span class="empty">暂无</span>'; }
+  else foundResults.forEach(p=>{
+    const el=document.createElement('div'); el.className='result-card';
+    el.textContent=`[${p.join(', ')}]`;
+    rs.appendChild(el);
+  });
+
+  // ---------- 绘制树 ----------
+  const {width,height}=layout();
+  const svg=$('treeSvg');
+  svg.setAttribute('width',Math.max(width,$('treeWrap').clientWidth-28));
+  svg.setAttribute('height',height);
+  svg.setAttribute('viewBox',`0 0 ${width} ${height}`);
+  svg.innerHTML='';
+
+  // 当前活动节点到根节点的路径
+  const onPath=new Set();
+  let cur=activeId!=null?nodeById.get(activeId):null;
+  while(cur){ onPath.add(cur.id); cur=cur.parent; }
+
+  const pos=n=>({x:n._x*NX+X0, y:n.depth*NY+Y0});
+
+  function addLine(x1,y1,x2,y2,color,w){
+    const l=document.createElementNS(svgns,'line');
+    l.setAttribute('x1',x1);l.setAttribute('y1',y1);l.setAttribute('x2',x2);l.setAttribute('y2',y2);
+    l.setAttribute('stroke',color);l.setAttribute('stroke-width',w);l.setAttribute('stroke-linecap','round');
+    svg.appendChild(l);
+  }
+  function addText(x,y,txt,color,size,anchor,weight){
+    const t=document.createElementNS(svgns,'text');
+    t.setAttribute('x',x);t.setAttribute('y',y);t.setAttribute('fill',color);
+    t.setAttribute('font-size',size);t.setAttribute('text-anchor',anchor||'middle');
+    t.setAttribute('font-weight',weight||400);t.textContent=txt;
+    svg.appendChild(t);
+  }
+
+  // 边
+  (function drawEdges(node){
+    for(const e of node.edges){
+      const p=pos(node), c=pos(e.child);
+      const onPathE=onPath.has(node.id)&&onPath.has(e.child.id);
+      const col=e.pruned? '#d8dee8' : (onPathE? '#2d6bff' : '#b9c4d4');
+      addLine(p.x,p.y+R,c.x,c.y-R,col,onPathE?3:1.5);
+      addText((p.x+c.x)/2,(p.y+c.y)/2-6,(e.pruned?'✂ ':'')+e.candidate,
+              e.pruned?'#b0b8c6':(onPathE?'#2d6bff':'#8b96a8'),11);
+      drawEdges(e.child);
+    }
+  })(root);
+
+  // 节点
+  (function drawNodes(node){
+    const p=pos(node);
+    const isActive=node.id===activeId;
+    const isVisited=visited.has(node.id);
+
+    if(isActive){
+      const glow=document.createElementNS(svgns,'circle');
+      glow.setAttribute('cx',p.x);glow.setAttribute('cy',p.y);glow.setAttribute('r',R+7);
+      glow.setAttribute('fill','none');glow.setAttribute('stroke','#4f8cff');
+      glow.setAttribute('stroke-width',3);glow.setAttribute('opacity','.55');
+      glow.setAttribute('class','pulse');svg.appendChild(glow);
+    }
+
+    const c=document.createElementNS(svgns,'circle');
+    c.setAttribute('cx',p.x);c.setAttribute('cy',p.y);c.setAttribute('r',R);
+    let fill,stroke,sw=1.5,ds=null;
+    if(isActive){ fill='#4f8cff'; stroke='#fff'; sw=3; }
+    else if(node.pruned){ fill='#f1f3f7'; stroke='#c4ccd9'; ds='4 3'; }
+    else if(node.isFound){ fill='#22c55e'; stroke='#fff'; sw=2.5; }
+    else if(isVisited){ fill='#e8f0ff'; stroke='#4f8cff'; }
+    else { fill='#ffffff'; stroke='#c7d2e0'; }
+    c.setAttribute('fill',fill);c.setAttribute('stroke',stroke);c.setAttribute('stroke-width',sw);
+    if(ds) c.setAttribute('stroke-dasharray',ds);
+    svg.appendChild(c);
+
+    const label=node.pruned? '✂'+node.path[node.path.length-1] : String(node.target);
+    const whiteTxt=isActive||node.isFound;
+    addText(p.x,p.y+4,label,whiteTxt?'#fff':'#374151',whiteTxt?15:14,'middle',700);
+    if(node.isFound) addText(p.x+R-2,p.y-R+2,'✓','#ffffff',13);
+    addText(p.x,p.y+R+15,node.path.length?node.path.join(','):'∅','#9aa4b5',10.5);
+
+    node.edges.forEach(e=>drawNodes(e.child));
+  })(root);
+}
+
+// ---------- 步进 / 播放控制 ----------
+function stepNext(){
+  if(!root) return;
+  if(frame<events.length-1){ apply(events[frame]); frame++; render(); }
+}
+function stepPrev(){
+  if(!root||frame===0) return;
+  stopPlay();
+  visited=new Set(); activeId=null; curPath=[]; foundResults=[]; desc='';
+  for(let i=0;i<frame-1;i++) apply(events[i]);
+  frame--;
+  render();
+}
+function delay(){ return 1150 - Number($('speed').value)*100; }
+function startPlay(){
+  if(!root||frame>=events.length-1) return;
+  playing=true; $('btnPlay').textContent='⏸ 暂停'; $('btnPlay').classList.add('active');
+  timer=setInterval(()=>{
+    if(frame>=events.length-1){ stopPlay(); return; }
+    stepNext();
+  },delay());
+}
+function stopPlay(){
+  playing=false; clearInterval(timer); timer=null;
+  $('btnPlay').textContent='▶ 自动播放'; $('btnPlay').classList.remove('active');
+}
+function togglePlay(){ if(playing) stopPlay(); else startPlay(); }
+
+// ---------- 初始化 ----------
+function init(){
+  if(!parseInput()) return;
+  stopPlay();
+  buildTree(); collectEvents();
+  frame=0; visited=new Set(); activeId=null; curPath=[]; foundResults=[];
+  desc='算法已就绪：根节点为初始状态（剩余目标 '+target+'），点击「下一步」或按 → 开始 🚀';
+  render();
+}
+
+$('btnStart').onclick=init;
+$('btnNext').onclick=stepNext;
+$('btnPrev').onclick=stepPrev;
+$('btnPlay').onclick=togglePlay;
+$('preset').onchange=()=>{
+  const v=$('preset').value;
+  if(v==='1'){ $('candidates').value='2,3,6,7'; $('target').value='7'; init(); }
+  else if(v==='2'){ $('candidates').value='2,3,5'; $('target').value='8'; init(); }
+};
+document.addEventListener('keydown',e=>{
+  if(e.key==='ArrowLeft'){ stepPrev(); }
+  else if(e.key==='ArrowRight'){ stopPlay(); stepNext(); }
+  else if(e.key===' '){ e.preventDefault(); togglePlay(); }
+});
+
+init();
+</script>
+</body>
+</html>
