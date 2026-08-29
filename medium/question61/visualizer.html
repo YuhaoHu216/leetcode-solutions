@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LeetCode 131 · 分割回文串 · 回溯可视化</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: "Segoe UI", "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
+    background: #f4f6fb;
+    color: #1f2937;
+  }
+  .topbar {
+    position: sticky; top: 0; z-index: 10;
+    background: #fff;
+    border-bottom: 1px solid #e5e7eb;
+    padding: 12px 18px;
+    display: flex; align-items: center; justify-content: space-between;
+    flex-wrap: wrap; gap: 10px;
+  }
+  h1 { font-size: 18px; margin: 0; font-weight: 600; }
+  h1 .sub { font-size: 13px; color: #6b7280; font-weight: 400; margin-left: 6px; }
+  .controls { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .controls input[type=text] {
+    width: 150px; padding: 7px 10px;
+    border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px;
+  }
+  .controls input[type=text]:focus { outline: 2px solid #bfdbfe; border-color: #2f80ed; }
+  button {
+    padding: 7px 14px; font-size: 14px; cursor: pointer;
+    border: 1px solid #d1d5db; border-radius: 6px; background: #fff; color: #374151;
+    transition: background .15s, border-color .15s;
+  }
+  button:hover:not(:disabled) { background: #f3f4f6; border-color: #9ca3af; }
+  button:disabled { opacity: .45; cursor: not-allowed; }
+  button.primary { background: #2f80ed; border-color: #2f80ed; color: #fff; }
+  button.primary:hover:not(:disabled) { background: #1e6fd0; }
+  button.playing { background: #f59e0b; border-color: #f59e0b; color: #fff; }
+  .controls label { font-size: 13px; color: #6b7280; display: flex; align-items: center; gap: 6px; }
+  .controls input[type=range] { width: 90px; }
+
+  .card {
+    background: #fff; margin: 14px 18px; padding: 14px 16px;
+    border: 1px solid #e5e7eb; border-radius: 10px;
+  }
+  .card h2 { font-size: 15px; margin: 0 0 10px; font-weight: 600; }
+  .card h2 .hint { font-size: 12px; color: #9ca3af; font-weight: 400; margin-left: 8px; }
+
+  /* 状态条 */
+  .statusbar { display: flex; align-items: center; gap: 24px; flex-wrap: wrap; }
+  .stat .lbl { display: block; font-size: 12px; color: #6b7280; }
+  .stat .val { font-size: 16px; font-weight: 600; font-family: Consolas, monospace; }
+  .stat.grow { flex: 1; min-width: 220px; }
+  .progress-track {
+    width: 100%; height: 6px; background: #eef0f4; border-radius: 3px; margin-top: 10px; overflow: hidden;
+  }
+  .progress-track .fill { height: 100%; width: 0%; background: #2f80ed; transition: width .15s; }
+
+  /* 消息条 */
+  .messagebar { display: flex; align-items: center; gap: 8px; min-height: 34px; }
+  .messagebar #msg { font-size: 14px; color: #374151; }
+  .messagebar #msg-icon { font-size: 16px; }
+
+  /* 字符串格 */
+  .stringbar { display: flex; align-items: center; gap: 12px; }
+  .stringbar .lbl { font-size: 14px; color: #6b7280; font-family: Consolas, monospace; }
+  .chars { display: flex; gap: 6px; }
+  .char {
+    width: 38px; height: 38px; font-size: 17px; font-weight: 600;
+    display: flex; align-items: center; justify-content: center;
+    border: 2px solid #d1d5db; border-radius: 8px; background: #fff;
+    font-family: Consolas, monospace;
+    transition: all .15s;
+  }
+  .char.done { background: #d9f2d6; border-color: #4caf50; color: #1b5e20; }
+  .char.trying { background: #ffe0b2; border-color: #ff9800; color: #7a3d00; box-shadow: 0 0 0 3px #ffe0b2; }
+  .char.trying-bad { background: #ffcdd2; border-color: #f44336; color: #8f1414; box-shadow: 0 0 0 3px #ffcdd2; }
+  .legend { display: flex; gap: 14px; margin-left: auto; font-size: 12px; color: #6b7280; flex-wrap: wrap; }
+  .legend i { display: inline-block; width: 12px; height: 12px; border-radius: 3px; margin-right: 4px; vertical-align: -1px; }
+
+  /* 树 */
+  .tree-scroll { overflow: auto; border: 1px solid #eef0f4; border-radius: 8px; }
+  #tree-svg { display: block; }
+  .node-visited { fill: #d6e9ff; stroke: #2f80ed; }
+  .node-found  { fill: #c8f7c5; stroke: #2e7d32; }
+  .node-current{ fill: #ff9800; stroke: #e65100; }
+  .node-unvisited { fill: #f3f4f6; stroke: #b6bec9; }
+  .node-lbl { font-family: Consolas, monospace; font-size: 13px; text-anchor: middle; fill: #374151; }
+  .node-lbl.current { fill: #fff; font-weight: 700; }
+  .edge-unvisited { stroke: #d6dbe3; stroke-width: 1.5; }
+  .edge-visited   { stroke: #2f80ed; stroke-width: 1.5; }
+  .edge-current   { stroke: #ff9800; stroke-width: 3; }
+
+  /* 方案列表 */
+  .solutions { display: flex; flex-wrap: wrap; gap: 10px; }
+  .sol {
+    padding: 8px 12px; border-radius: 8px; font-size: 14px;
+    background: #f3f4f6; border: 1px solid #e5e7eb; color: #9ca3af;
+    font-family: Consolas, monospace; transition: all .2s;
+  }
+  .sol .q { color: #1f2937; }
+  .sol.found {
+    background: #e6f4ea; border-color: #2e7d32; color: #1b5e20;
+    box-shadow: 0 2px 6px rgba(46, 125, 50, .18);
+  }
+  .sol.empty-placeholder { font-size: 13px; color: #9ca3af; }
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <h1>LeetCode 131 · 分割回文串<span class="sub">回溯搜索可视化</span></h1>
+  <div class="controls">
+    <input type="text" id="input" placeholder="输入字符串，如 aab" maxlength="9">
+    <button id="btn-start" class="primary">▶ 开始演示</button>
+    <button id="btn-prev">◀ 上一步</button>
+    <button id="btn-next">下一步 ▶</button>
+    <button id="btn-play">⏵ 自动播放</button>
+    <label>速度<input type="range" id="speed" min="100" max="1500" value="600" step="50"></label>
+  </div>
+</header>
+
+<section class="card statusbar">
+  <div class="stat"><span class="lbl">当前 index（待分割位置）</span><span class="val" id="cur-index">—</span></div>
+  <div class="stat grow"><span class="lbl">当前分割方案 cur</span><span class="val" id="cur-list">[]</span></div>
+  <div class="stat"><span class="lbl">进度</span><span class="val" id="progress">0 / 0</span></div>
+  <div class="progress-track"><div class="fill" id="progress-fill"></div></div>
+</section>
+
+<section class="card messagebar">
+  <span id="msg-icon">💡</span>
+  <span id="msg">请输入一个字符串后点击「开始演示」，逐帧观察回溯过程</span>
+</section>
+
+<section class="card">
+  <h2>字符串分割状态
+    <span class="hint">绿色 = 已确定的分割片段，橙色 = 正在尝试的片段</span>
+  </h2>
+  <div class="stringbar">
+    <span class="lbl">s =</span>
+    <div class="chars" id="chars"></div>
+    <div class="legend">
+      <span><i style="background:#d9f2d6;border:1px solid #4caf50"></i>已分割</span>
+      <span><i style="background:#ffe0b2;border:1px solid #ff9800"></i>尝试(回文)</span>
+      <span><i style="background:#ffcdd2;border:1px solid #f44336"></i>尝试(非回文)</span>
+    </div>
+  </div>
+</section>
+
+<section class="card">
+  <h2>回溯搜索树<span class="hint">每个节点 = 一次递归调用，节点数字 = 待分割的起始位置 index，边上的标签 = 选取的回文子串</span></h2>
+  <div class="tree-scroll">
+    <svg id="tree-svg" xmlns="http://www.w3.org/2000/svg"></svg>
+  </div>
+</section>
+
+<section class="card">
+  <h2>找到的分割方案</h2>
+  <div class="solutions" id="solutions"></div>
+</section>
+
+<script>
+/* ===================== 纯逻辑（无 DOM，可单独验证） ===================== */
+
+// 判断 s[left..right] 是否为回文
+function isPal(s, left, right) {
+  while (left < right) {
+    if (s[left++] !== s[right--]) return false;
+  }
+  return true;
+}
+
+// 构建回溯搜索树 + 线性步骤序列，返回 { nodes, steps, solutions, rootId }
+//   node = { id, index, parent, edge, children, isLeaf, depth, x }
+//   step = { type, nodeId, cur, index, seg, start, end, pal, msg }
+function analyze(s) {
+  const n = s.length;
+  const nodes = [];
+  const steps = [];
+  const solutions = [];
+  let idc = 0;
+
+  function newNode(index, parent, edge) {
+    const node = {
+      id: idc++, index, parent, edge,
+      children: [], isLeaf: false,
+      depth: parent === null ? 0 : nodes[parent].depth + 1,
+    };
+    nodes.push(node);
+    return node;
+  }
+
+  function dfs(node, cur) {
+    // 1. 进入本层递归
+    steps.push({
+      type: 'enter', nodeId: node.id, cur: [...cur], index: node.index, seg: node.edge,
+      msg: node.index === n
+        ? `已切到字符串末尾（index=${n}），这是一个完整方案`
+        : `进入状态 index=${node.index}：还需要从 s[${node.index}] 开始继续切分`,
+    });
+
+    // 2. 分割完毕 → 记录一个方案
+    if (node.index === n) {
+      node.isLeaf = true;
+      solutions.push([...cur]);
+      steps.push({
+        type: 'found', nodeId: node.id, cur: [...cur], index: node.index,
+        msg: `✓ 找到一个分割方案：${fmt(cur)}`,
+      });
+      return;
+    }
+
+    // 3. 枚举下一个回文子串的结束位置
+    for (let i = node.index; i < n; i++) {
+      const seg = s.substring(node.index, i + 1);
+      const pal = isPal(s, node.index, i);
+      steps.push({
+        type: 'try', nodeId: node.id, cur: [...cur], index: node.index,
+        start: node.index, end: i, seg, pal,
+        msg: `尝试 s[${node.index}..${i}] = "${seg}"  →  ${pal ? '是回文，选择它' : '不是回文，跳过'}`,
+      });
+      if (pal) {
+        cur.push(seg);                       // 做选择
+        const child = newNode(i + 1, node.id, seg);
+        node.children.push(child.id);
+        dfs(child, cur);                     // 递归
+        cur.pop();                           // 撤销选择
+        steps.push({
+          type: 'backtrack', nodeId: node.id, cur: [...cur], index: node.index, seg,
+          msg: `↩ 回溯：把 "${seg}" 从方案中移除，换一种切法`,
+        });
+      }
+    }
+  }
+
+  const root = newNode(0, null, null);
+  dfs(root, []);
+  return { nodes, steps, solutions, rootId: root.id };
+}
+
+// 树布局：叶子从左到右分配水平槽位，内部节点取子节点中点
+function layout(nodes, rootId) {
+  let leafCount = 0;
+  function assignX(node) {
+    if (node.isLeaf) { node.x = leafCount++; }
+    else {
+      node.children.forEach(cid => assignX(nodes[cid]));
+      node.x = (nodes[node.children[0]].x + nodes[node.children[node.children.length - 1]].x) / 2;
+    }
+  }
+  assignX(nodes[rootId]);
+  let maxDepth = 0;
+  nodes.forEach(nd => { maxDepth = Math.max(maxDepth, nd.depth); });
+  return { maxDepth, leafCount };
+}
+
+// 把方案列表格式化成 ["a","a","b"]
+function fmt(list) {
+  return '[' + list.map(x => '"' + x + '"').join(', ') + ']';
+}
+</script>
+
+<script>
+/* ===================== DOM 渲染与交互 ===================== */
+
+const $ = id => document.getElementById(id);
+const input = $('input'), btnStart = $('btn-start'), btnPrev = $('btn-prev'),
+      btnNext = $('btn-next'), btnPlay = $('btn-play'), speed = $('speed');
+
+let s = '', nodes = [], steps = [], solutions = [], rootId = -1;
+let maxDepth = 0, leafCount = 0, stepIndex = -1, timer = null;
+
+// ---------- 逐步演示状态 ----------
+// 通过重放 [0..i] 的步骤重建状态，避免复杂的逆操作
+function buildState(i) {
+  const st = {
+    visitedNodes: new Set(), visitedEdges: new Set(),
+    currentNode: null, currentEdge: null, currentTry: null,
+    cur: [], index: 0, foundCount: 0,
+  };
+  for (let k = 0; k <= i; k++) {
+    const step = steps[k];
+    if (step.type === 'enter') {
+      st.currentNode = step.nodeId;
+      st.visitedNodes.add(step.nodeId);
+      if (nodes[step.nodeId].parent !== null) {
+        st.currentEdge = nodes[step.nodeId].parent + '-' + step.nodeId;
+        st.visitedEdges.add(st.currentEdge);
+      }
+      st.cur = [...step.cur]; st.currentTry = null; st.index = step.index;
+    } else if (step.type === 'try') {
+      st.currentNode = step.nodeId;
+      st.currentTry = { start: step.start, end: step.end, pal: step.pal };
+      st.index = step.index;
+    } else if (step.type === 'found') {
+      st.currentNode = step.nodeId; st.index = step.index; st.foundCount++;
+    } else if (step.type === 'backtrack') {
+      st.currentNode = step.nodeId;
+      st.currentEdge = null;
+      st.cur = [...step.cur]; st.currentTry = null; st.index = step.index;
+    }
+  }
+  st.lastMsg = i >= 0 ? steps[i].msg : '';
+  return st;
+}
+
+// ---------- 各区域绘制 ----------
+function drawTree(st) {
+  const svg = $('tree-svg');
+  if (!nodes.length) { svg.innerHTML = ''; return; }
+
+  const nodeW = 64, levelH = 90, radius = 20;
+  const contentW = Math.max(1, leafCount) * nodeW + 60;
+  const width = Math.max(780, contentW);
+  const height = (maxDepth + 1) * levelH + 60;
+  const padX = Math.max(0, (width - contentW) / 2);
+  const px = nd => padX + 30 + nd.x * nodeW;
+  const py = nd => 30 + nd.depth * levelH;
+
+  let html = '';
+  // 边
+  nodes.forEach(nd => {
+    if (nd.parent === null) return;
+    const from = nodes[nd.parent];
+    const key = nd.parent + '-' + nd.id;
+    let cls = 'edge-unvisited';
+    if (st.currentEdge === key) cls = 'edge-current';
+    else if (st.visitedEdges.has(key)) cls = 'edge-visited';
+    html += `<line x1="${px(from)}" y1="${py(from)}" x2="${px(nd)}" y2="${py(nd)}" class="${cls}"/>`;
+  });
+  // 节点 + 边标签
+  nodes.forEach(nd => {
+    if (nd.parent === null) return;
+    const from = nodes[nd.parent];
+    // 边的中点显示选取的回文子串
+    html += `<text x="${(px(from) + px(nd)) / 2}" y="${(py(from) + py(nd)) / 2 - 5}" class="edge-lbl" ` +
+            `style="font-size:11px;font-family:Consolas;fill:#6b7280;text-anchor:middle;">${nd.edge}</text>`;
+  });
+  // 节点
+  nodes.forEach(nd => {
+    let cls = 'node-unvisited';
+    if (st.currentNode === nd.id) cls = 'node-current';
+    else if (nd.isLeaf && st.visitedNodes.has(nd.id)) cls = 'node-found';
+    else if (st.visitedNodes.has(nd.id)) cls = 'node-visited';
+    const r = cls === 'node-current' ? 23 : 20;
+    const label = nd.isLeaf ? '✓' : nd.index;
+    const lblCls = 'node-lbl' + (cls === 'node-current' ? ' current' : '');
+    html += `<circle cx="${px(nd)}" cy="${py(nd)}" r="${r}" class="${cls}"/>`;
+    html += `<text x="${px(nd)}" y="${py(nd)}" class="${lblCls}" dominant-baseline="central">${label}</text>`;
+  });
+
+  svg.setAttribute('width', width);
+  svg.setAttribute('height', height);
+  svg.innerHTML = html;
+}
+
+function drawStringBar(st) {
+  const wrap = $('chars');
+  wrap.innerHTML = '';
+  [...s].forEach((ch, j) => {
+    const d = document.createElement('div');
+    d.className = 'char';
+    if (j < st.index) d.classList.add('done');
+    if (st.currentTry && j >= st.currentTry.start && j <= st.currentTry.end) {
+      d.classList.add(st.currentTry.pal ? 'trying' : 'trying-bad');
+    }
+    d.textContent = ch;
+    wrap.appendChild(d);
+  });
+}
+
+function drawStatus(st) {
+  $('cur-index').textContent = st.index;
+  $('cur-list').textContent = '[' + st.cur.map(x => '"' + x + '"').join(', ') + ']';
+  const total = steps.length;
+  const cur = total ? stepIndex + 1 : 0;
+  $('progress').textContent = cur + ' / ' + total;
+  $('progress-fill').style.width = total ? (cur / total * 100) + '%' : '0%';
+}
+
+function drawMessage() {
+  $('msg').textContent = stepIndex >= 0 && steps.length ? steps[stepIndex].msg : '请输入一个字符串后点击「开始演示」，逐帧观察回溯过程';
+  $('msg-icon').textContent = stepIndex >= 0 ? (steps[stepIndex].type === 'found' ? '🎉' : '🔍') : '💡';
+}
+
+function drawSolutions(st) {
+  const wrap = $('solutions');
+  wrap.innerHTML = '';
+  if (!solutions.length) {
+    const d = document.createElement('div');
+    d.className = 'sol empty-placeholder';
+    d.textContent = '（空字符串只有一种分割：[]）';
+    wrap.appendChild(d);
+    return;
+  }
+  solutions.forEach((sol, k) => {
+    const d = document.createElement('div');
+    d.className = 'sol' + (k < st.foundCount ? ' found' : '');
+    d.innerHTML = '[' + sol.map(x => '<span class="q">"' + x + '"</span>').join(', ') + ']';
+    wrap.appendChild(d);
+  });
+}
+
+function render(st) {
+  drawTree(st);
+  drawStringBar(st);
+  drawStatus(st);
+  drawMessage();
+  drawSolutions(st);
+}
+
+function setStep(i) {
+  if (!steps.length) return;
+  stepIndex = Math.max(-1, Math.min(i, steps.length - 1));
+  render(buildState(stepIndex));
+  updateControls();
+}
+
+function updateControls() {
+  btnPrev.disabled = stepIndex < 0 || !steps.length;
+  btnNext.disabled = stepIndex >= steps.length - 1 || !steps.length;
+  btnPlay.disabled = !steps.length;
+  btnPlay.classList.toggle('playing', !!timer);
+  btnPlay.textContent = timer ? '⏸ 暂停' : '⏵ 自动播放';
+}
+
+function stopAuto() { if (timer) { clearInterval(timer); timer = null; updateControls(); } }
+
+// ---------- 事件绑定 ----------
+btnStart.addEventListener('click', () => {
+  const raw = input.value.trim();
+  if (!raw) { alert('请输入一个字符串，例如 aab'); return; }
+  if (raw.length > 9) { alert('字符串过长（>9）会导致回溯分支爆炸，请缩短到 9 个字符以内'); return; }
+  stopAuto();
+  s = raw;
+  const a = analyze(s);
+  nodes = a.nodes; steps = a.steps; solutions = a.solutions; rootId = a.rootId;
+  const L = layout(nodes, rootId);
+  maxDepth = L.maxDepth; leafCount = L.leafCount;
+  stepIndex = -1;
+  setStep(-1);
+});
+
+btnPrev.addEventListener('click', () => setStep(stepIndex - 1));
+btnNext.addEventListener('click', () => setStep(stepIndex + 1));
+
+btnPlay.addEventListener('click', () => {
+  if (timer) { stopAuto(); return; }
+  if (stepIndex >= steps.length - 1) setStep(-1);
+  const tick = () => {
+    if (stepIndex >= steps.length - 1) { stopAuto(); return; }
+    setStep(stepIndex + 1);
+  };
+  timer = setInterval(tick, parseInt(speed.value, 10));
+  updateControls();
+});
+
+speed.addEventListener('input', () => {
+  if (timer) { clearInterval(timer); timer = setInterval(() => {
+    if (stepIndex >= steps.length - 1) { stopAuto(); return; }
+    setStep(stepIndex + 1);
+  }, parseInt(speed.value, 10)); }
+});
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'ArrowRight') setStep(stepIndex + 1);
+  else if (e.key === 'ArrowLeft') setStep(stepIndex - 1);
+});
+
+input.addEventListener('keydown', e => { if (e.key === 'Enter') btnStart.click(); });
+
+// 初始化：支持 URL 参数 ?s=aab 直接载入示例、&auto=1 自动播放
+(function init() {
+  const params = new URLSearchParams(location.search);
+  const qs = params.get('s');
+  if (qs) {
+    input.value = qs;
+    btnStart.click();
+    if (params.get('auto') === '1') setTimeout(() => btnPlay.click(), 300);
+  }
+  updateControls();
+})();
+</script>
+</body>
+</html>
