@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LeetCode 35 · 搜索插入位置 · 二分查找可视化</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: "Segoe UI", "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
+    background: #f4f6fb;
+    color: #1f2937;
+  }
+  .topbar {
+    position: sticky; top: 0; z-index: 10;
+    background: #fff;
+    border-bottom: 1px solid #e5e7eb;
+    padding: 12px 18px;
+    display: flex; align-items: center; justify-content: space-between;
+    flex-wrap: wrap; gap: 10px;
+  }
+  h1 { font-size: 18px; margin: 0; font-weight: 600; }
+  h1 .sub { font-size: 13px; color: #6b7280; font-weight: 400; margin-left: 6px; }
+  .controls { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .controls .field { display: flex; align-items: center; gap: 6px; font-size: 13px; color: #6b7280; }
+  .controls input[type=text] {
+    width: 170px; padding: 7px 10px;
+    border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px;
+  }
+  .controls input[type=text].short { width: 64px; }
+  .controls input[type=text]:focus { outline: 2px solid #bfdbfe; border-color: #2f80ed; }
+  button {
+    padding: 7px 14px; font-size: 14px; cursor: pointer;
+    border: 1px solid #d1d5db; border-radius: 6px; background: #fff; color: #374151;
+    transition: background .15s, border-color .15s;
+  }
+  button:hover:not(:disabled) { background: #f3f4f6; border-color: #9ca3af; }
+  button:disabled { opacity: .45; cursor: not-allowed; }
+  button.primary { background: #2f80ed; border-color: #2f80ed; color: #fff; }
+  button.primary:hover:not(:disabled) { background: #1e6fd0; }
+  button.playing { background: #f59e0b; border-color: #f59e0b; color: #fff; }
+  .controls label { font-size: 13px; color: #6b7280; display: flex; align-items: center; gap: 6px; }
+  .controls input[type=range] { width: 90px; }
+
+  .card {
+    background: #fff; margin: 14px 18px; padding: 14px 16px;
+    border: 1px solid #e5e7eb; border-radius: 10px;
+  }
+  .card h2 { font-size: 15px; margin: 0 0 10px; font-weight: 600; }
+  .card h2 .hint { font-size: 12px; color: #9ca3af; font-weight: 400; margin-left: 8px; }
+
+  .statusbar { display: flex; align-items: center; gap: 24px; flex-wrap: wrap; }
+  .stat .lbl { display: block; font-size: 12px; color: #6b7280; }
+  .stat .val { font-size: 16px; font-weight: 600; font-family: Consolas, monospace; }
+  .stat .val .pill {
+    display: inline-block; font-size: 12px; color: #fff; border-radius: 5px;
+    padding: 2px 7px; margin-left: 4px; vertical-align: 1px;
+  }
+  .stat.grow { flex: 1; min-width: 220px; }
+  .progress-track {
+    width: 100%; height: 6px; background: #eef0f4; border-radius: 3px; margin-top: 10px; overflow: hidden;
+  }
+  .progress-track .fill { height: 100%; width: 0%; background: #2f80ed; transition: width .15s; }
+
+  .messagebar { display: flex; align-items: center; gap: 8px; min-height: 34px; }
+  .messagebar #msg { font-size: 14px; color: #374151; }
+  .messagebar #msg-icon { font-size: 16px; }
+
+  /* 数组格 */
+  .arr { display: flex; gap: 10px; align-items: flex-start; flex-wrap: wrap; }
+  .cell { width: 56px; }
+  .cell .pins { height: 22px; display: flex; gap: 3px; justify-content: center; }
+  .cell .badge { font-size: 10px; color: #fff; padding: 1px 4px; border-radius: 4px; white-space: nowrap; }
+  .cell .box {
+    height: 46px; border: 2px solid #d1d5db; border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px; font-weight: 600; background: #fff;
+    font-family: Consolas, monospace; transition: all .15s;
+  }
+  .cell .box.excluded { opacity: .3; background: #eef0f4; border-style: dashed; }
+  .cell .box.mid { border-color: #ea580c; background: #ffedd5; box-shadow: 0 0 0 3px #ffedd5; }
+  .cell .box.target { border-color: #9333ea; box-shadow: 0 0 0 3px #f3e8ff; }
+  .cell .idx { font-size: 11px; color: #9ca3af; text-align: center; margin-top: 3px; }
+  .legend { display: flex; gap: 14px; margin-left: auto; font-size: 12px; color: #6b7280; flex-wrap: wrap; align-items: center; }
+  .legend i { display: inline-block; width: 12px; height: 12px; border-radius: 3px; margin-right: 4px; vertical-align: -1px; }
+
+  /* 结果区 */
+  .result-insert { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+  .result-insert .rcell {
+    width: 52px; height: 40px; border: 2px solid #d1d5db; border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 15px; font-weight: 600; font-family: Consolas, monospace; background: #fff;
+  }
+  .result-insert .rcell.new { border-color: #16a34a; background: #dcfce7; color: #14532d; }
+  .result-insert .arrow { font-size: 18px; color: #6b7280; }
+  .result-line { font-size: 14px; color: #374151; font-family: Consolas, monospace; }
+  .result-line b { color: #16a34a; }
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <h1>LeetCode 35 · 搜索插入位置<span class="sub">二分查找可视化 · O(log n)</span></h1>
+  <div class="controls">
+    <div class="field"><span>数组</span><input type="text" id="nums" placeholder="升序数组，如 1,3,5,6" maxlength="60"></div>
+    <div class="field"><span>target</span><input type="text" id="target" class="short" placeholder="2"></div>
+    <button id="btn-start" class="primary">▶ 开始演示</button>
+    <button id="btn-prev">◀ 上一步</button>
+    <button id="btn-next">下一步 ▶</button>
+    <button id="btn-play">⏵ 自动播放</button>
+    <label>速度<input type="range" id="speed" min="200" max="2500" value="800" step="100"></label>
+  </div>
+</header>
+
+<section class="card statusbar">
+  <div class="stat"><span class="lbl">左指针 left</span><span class="val" id="cur-left">—</span></div>
+  <div class="stat"><span class="lbl">右指针 right</span><span class="val" id="cur-right">—</span></div>
+  <div class="stat"><span class="lbl">中间指针 mid</span><span class="val" id="cur-mid">—</span></div>
+  <div class="stat grow"><span class="lbl">当前搜索区间</span><span class="val" id="cur-range">—</span></div>
+  <div class="progress-track"><div class="fill" id="progress-fill"></div></div>
+</section>
+
+<section class="card">
+  <h2>数组与指针<span class="hint">灰色虚线 = 已被排除的区间，橙色 = mid，紫色 = 已找到 target</span></h2>
+  <div class="arr" id="array"></div>
+  <div class="legend">
+    <span><i style="background:#2563eb"></i>left</span>
+    <span><i style="background:#ea580c"></i>mid</span>
+    <span><i style="background:#16a34a"></i>right</span>
+    <span><i style="background:#9333ea"></i>target</span>
+  </div>
+</section>
+
+<section class="card messagebar">
+  <span id="msg-icon">💡</span>
+  <span id="msg">请输入升序数组与目标值后点击「开始演示」，逐步观察二分查找如何收缩区间</span>
+</section>
+
+<section class="card">
+  <h2>结果</h2>
+  <div id="result">
+    <div class="result-line">尚未开始查找。当 <b>left &gt; right</b> 时循环结束，<b>left</b> 即插入位置。</div>
+  </div>
+</section>
+
+<script>
+/* ===================== 纯逻辑（无 DOM，可单独验证） ===================== */
+
+// 模拟题解中的二分查找，生成逐步步骤序列
+// step = { type:'init'|'calc'|'shrink'|'done', left, right, mid, action, msg }
+function buildSteps(nums, target) {
+  const steps = [];
+  let left = 0, right = nums.length - 1;
+
+  steps.push({ type: 'init', left, right, mid: null, msg: `初始搜索区间 [${left}, ${right}]，目标是找到第一个 ≥ ${target} 的位置` });
+
+  while (left <= right) {
+    const mid = left + Math.floor((right - left) / 2);
+    steps.push({
+      type: 'calc', left, right, mid,
+      msg: `计算 mid = left + (right-left)/2 = ${left} + (${right}-${left})/2 = ${mid}，比较 nums[${mid}] = ${nums[mid]}`,
+    });
+    if (nums[mid] < target) {
+      steps.push({
+        type: 'shrink', left, right, mid, action: 'L',
+        msg: `nums[${mid}] = ${nums[mid]} < target = ${target} → target 在右半区，收缩左边界：left = mid + 1 = ${mid + 1}`,
+      });
+      left = mid + 1;
+    } else {
+      steps.push({
+        type: 'shrink', left, right, mid, action: 'R',
+        msg: `nums[${mid}] = ${nums[mid]} ≥ target = ${target} → 候选位置在左半区（含 mid），收缩右边界：right = mid - 1 = ${mid - 1}`,
+      });
+      right = mid - 1;
+    }
+  }
+
+  steps.push({
+    type: 'done', left, right, mid: null,
+    msg: `循环结束（left = ${left} > right = ${right}），插入位置 = left = ${left}`,
+  });
+  return steps;
+}
+</script>
+
+<script>
+/* ===================== DOM 渲染与交互 ===================== */
+
+const $ = id => document.getElementById(id);
+const numsInput = $('nums'), targetInput = $('target'),
+      btnStart = $('btn-start'), btnPrev = $('btn-prev'),
+      btnNext = $('btn-next'), btnPlay = $('btn-play'), speed = $('speed');
+
+let nums = [], target = 0, steps = [], stepIndex = -1, timer = null;
+
+// ---------- 通过重放步骤重建状态 ----------
+function buildState(i) {
+  const st = { left: null, right: null, mid: null, phase: 'idle', action: null, insertPos: null };
+  for (let k = 0; k <= i; k++) {
+    const s = steps[k];
+    if (s.type === 'init') { st.left = s.left; st.right = s.right; st.phase = 'init'; }
+    else if (s.type === 'calc') { st.left = s.left; st.right = s.right; st.mid = s.mid; st.phase = 'calc'; }
+    else if (s.type === 'shrink') { st.left = s.left; st.right = s.right; st.mid = s.mid; st.phase = 'shrink'; st.action = s.action; }
+    else if (s.type === 'done') { st.left = s.left; st.right = s.right; st.mid = null; st.phase = 'done'; st.insertPos = s.left; }
+    st.lastStep = s;
+  }
+  return st;
+}
+
+// ---------- 绘制 ----------
+function badge(text, color) {
+  const b = document.createElement('span');
+  b.className = 'badge';
+  b.style.background = color;
+  b.textContent = text;
+  return b;
+}
+
+function drawArray(st) {
+  const wrap = $('array');
+  wrap.innerHTML = '';
+  if (!nums.length) return;
+  nums.forEach((v, j) => {
+    const cell = document.createElement('div');
+    cell.className = 'cell';
+
+    const pins = document.createElement('div');
+    pins.className = 'pins';
+    if (st.phase !== 'idle') {
+      if (j === st.left) pins.appendChild(badge('▼ left', '#2563eb'));
+      if (st.mid !== null && j === st.mid) pins.appendChild(badge('▼ mid', '#ea580c'));
+      if (j === st.right) pins.appendChild(badge('right ▼', '#16a34a'));
+    }
+
+    const box = document.createElement('div');
+    box.className = 'box';
+    if (st.phase !== 'idle' && (j < st.left || j > st.right)) box.classList.add('excluded');
+    if (st.mid !== null && j === st.mid) box.classList.add('mid');
+    if (st.phase === 'done' && v === target) box.classList.add('target');
+    box.textContent = v;
+
+    const idx = document.createElement('div');
+    idx.className = 'idx';
+    idx.textContent = j;
+
+    cell.appendChild(pins);
+    cell.appendChild(box);
+    cell.appendChild(idx);
+    wrap.appendChild(cell);
+  });
+}
+
+function drawState(st) {
+  const set = (id, v, pill) => {
+    const el = $(id);
+    el.textContent = v === null ? '—' : v;
+    if (pill) el.innerHTML += `<span class="pill" style="background:${pill[1]}">${pill[0]}</span>`;
+  };
+  set('cur-left', st.left, st.phase !== 'idle' ? ['L', '#2563eb'] : null);
+  set('cur-right', st.right, st.phase !== 'idle' ? ['R', '#16a34a'] : null);
+  set('cur-mid', st.mid, st.phase === 'calc' || st.phase === 'shrink' ? ['M', '#ea580c'] : null);
+  $('cur-range').textContent = (st.phase !== 'idle' && st.left !== null)
+    ? `[${st.left}, ${st.right}]` + (st.left > st.right ? '（空）' : '')
+    : '—';
+
+  const total = steps.length, cur = total ? stepIndex + 1 : 0;
+  $('progress-fill').style.width = total ? (cur / total * 100) + '%' : '0%';
+}
+
+function drawMessage(st) {
+  $('msg').textContent = st.lastStep ? st.lastStep.msg : '请输入升序数组与目标值后点击「开始演示」，逐步观察二分查找如何收缩区间';
+  $('msg-icon').textContent = !st.lastStep ? '💡'
+    : st.lastStep.type === 'done' ? '🎉' : st.lastStep.type === 'shrink' ? '➡️' : '🔍';
+}
+
+function drawResult(st) {
+  const wrap = $('result');
+  wrap.innerHTML = '';
+  if (st.phase !== 'done' || st.insertPos === null) {
+    const d = document.createElement('div');
+    d.className = 'result-line';
+    d.innerHTML = '尚未查找完成。当 <b>left &gt; right</b> 时循环结束，<b>left</b> 即插入位置。';
+    wrap.appendChild(d);
+    return;
+  }
+  const pos = st.insertPos;
+  const line = document.createElement('div');
+  line.className = 'result-line';
+  line.innerHTML = `插入位置 = <b>${pos}</b>（把 target=${target} 插到下标 ${pos}，数组保持有序）`;
+  wrap.appendChild(line);
+
+  const row = document.createElement('div');
+  row.className = 'result-insert';
+  row.style.marginTop = '10px';
+  for (let j = 0; j <= nums.length; j++) {
+    if (j === pos) {
+      const arrow = document.createElement('span');
+      arrow.className = 'arrow';
+      arrow.textContent = '↓';
+      row.appendChild(arrow);
+    }
+    const c = document.createElement('div');
+    c.className = 'rcell' + (j === pos ? ' new' : '');
+    c.textContent = j === pos ? target : nums[j];
+    row.appendChild(c);
+  }
+  wrap.appendChild(row);
+}
+
+function render(st) {
+  drawArray(st);
+  drawState(st);
+  drawMessage(st);
+  drawResult(st);
+}
+
+function setStep(i) {
+  if (!steps.length) return;
+  stepIndex = Math.max(-1, Math.min(i, steps.length - 1));
+  render(buildState(stepIndex));
+  updateControls();
+}
+
+function updateControls() {
+  btnPrev.disabled = stepIndex < 0 || !steps.length;
+  btnNext.disabled = stepIndex >= steps.length - 1 || !steps.length;
+  btnPlay.disabled = !steps.length;
+  btnPlay.classList.toggle('playing', !!timer);
+  btnPlay.textContent = timer ? '⏸ 暂停' : '⏵ 自动播放';
+}
+
+function stopAuto() { if (timer) { clearInterval(timer); timer = null; updateControls(); } }
+
+// ---------- 事件绑定 ----------
+btnStart.addEventListener('click', () => {
+  const raw = numsInput.value.trim();
+  if (!raw) { alert('请输入数组，例如 1,3,5,6'); return; }
+  const parsed = raw.split(/[,\s]+/).map(Number);
+  if (parsed.some(isNaN)) { alert('数组包含非法内容，请用逗号分隔数字'); return; }
+  const t = Number(targetInput.value.trim());
+  if (targetInput.value.trim() === '' || isNaN(t)) { alert('请输入目标值 target'); return; }
+  if (parsed.length > 14) { alert('数组过长（>14），请缩短以保持界面清晰'); return; }
+  const sorted = parsed.every((v, j) => j === 0 || parsed[j - 1] <= v);
+  if (!sorted && !confirm('数组未按升序排列，二分查找的结果可能不正确。仍要继续演示吗？')) return;
+
+  stopAuto();
+  nums = parsed;
+  target = t;
+  steps = buildSteps(nums, target);
+  stepIndex = -1;
+  setStep(-1);
+});
+
+btnPrev.addEventListener('click', () => setStep(stepIndex - 1));
+btnNext.addEventListener('click', () => setStep(stepIndex + 1));
+
+const playTick = () => {
+  if (stepIndex >= steps.length - 1) { stopAuto(); return; }
+  setStep(stepIndex + 1);
+};
+btnPlay.addEventListener('click', () => {
+  if (timer) { stopAuto(); return; }
+  if (stepIndex >= steps.length - 1) setStep(-1);
+  timer = setInterval(playTick, parseInt(speed.value, 10));
+  updateControls();
+});
+speed.addEventListener('input', () => {
+  if (timer) { clearInterval(timer); timer = setInterval(playTick, parseInt(speed.value, 10)); }
+});
+document.addEventListener('keydown', e => {
+  if (e.key === 'ArrowRight') setStep(stepIndex + 1);
+  else if (e.key === 'ArrowLeft') setStep(stepIndex - 1);
+});
+
+// ---------- 初始化：支持 URL 参数 ?nums=1,3,5,6&target=2&auto=1 ----------
+(function init() {
+  const params = new URLSearchParams(location.search);
+  const qn = params.get('nums'), qt = params.get('target');
+  if (qn) {
+    numsInput.value = qn;
+    if (qt) targetInput.value = qt;
+    btnStart.click();
+    if (params.get('auto') === '1') setTimeout(() => btnPlay.click(), 300);
+  }
+  updateControls();
+})();
+</script>
+</body>
+</html>
