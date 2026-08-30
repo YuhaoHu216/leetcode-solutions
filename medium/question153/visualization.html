@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LeetCode 153 · 寻找旋转排序数组中的最小值 · 可视化</title>
+<style>
+:root{
+  --blue:#3b82f6; --orange:#f59e0b; --green:#10b981; --red:#ef4444;
+  --purple:#8b5cf6; --ink:#1e293b; --muted:#64748b;
+  --bg:#f1f5f9; --card:#fff; --line:#e2e8f0;
+}
+*{box-sizing:border-box; margin:0; padding:0;}
+body{background:var(--bg); color:var(--ink); font-family:"Segoe UI","Microsoft YaHei",system-ui,sans-serif; padding:24px 16px 80px;}
+.wrap{max-width:980px; margin:0 auto;}
+h1{font-size:22px; display:flex; align-items:center; gap:10px; flex-wrap:wrap;}
+h1 .no{color:var(--muted); font-weight:600;}
+.tagline{color:var(--muted); font-size:13px; margin-top:6px;}
+.card{background:var(--card); border:1px solid var(--line); border-radius:14px; padding:18px; margin-top:16px; box-shadow:0 1px 3px rgba(0,0,0,.05);}
+details summary{cursor:pointer; font-weight:700; font-size:14px; color:var(--ink);}
+.hint{color:var(--muted); font-size:13px; margin:10px 0 14px; line-height:1.6;}
+
+/* ---------- 旋转演示 ---------- */
+.demo-rot{display:flex; align-items:center; gap:18px; flex-wrap:wrap; justify-content:center;}
+.mini-lbl{font-size:12px; color:var(--muted); margin-bottom:8px; text-align:center;}
+.mini-row{display:flex; gap:4px; justify-content:center;}
+.bar-mini{width:34px; height:34px; border-radius:8px; color:#fff; display:inline-flex; align-items:center; justify-content:center; font-weight:700; font-size:14px;}
+@keyframes popIn{from{transform:scale(.3); opacity:0;} to{transform:scale(1); opacity:1;}}
+
+/* ---------- 主可视化 ---------- */
+.arr{position:relative; padding-top:68px; display:flex; justify-content:center; margin-top:18px;}
+.pointer-layer{position:absolute; top:0; left:0; width:100%; height:60px; pointer-events:none;}
+.ptr{position:absolute; transform:translateX(-50%); font-size:12px; font-weight:800; color:#fff; padding:2px 8px; border-radius:99px; white-space:nowrap; box-shadow:0 2px 6px rgba(0,0,0,.18);}
+.ptr-l{background:var(--green); top:0;}
+.ptr-m{background:var(--purple); top:20px; z-index:2;}
+.ptr-r{background:var(--red); top:40px;}
+.cell{width:58px; display:flex; flex-direction:column; align-items:center;}
+.bar{width:46px; height:46px; border-radius:10px; display:flex; align-items:center; justify-content:center; color:#fff; font-weight:700; font-size:16px; transition:transform .25s, box-shadow .25s, opacity .25s;}
+.bar.seg-left{background:var(--blue);}
+.bar.seg-right{background:var(--orange);}
+.bar.out{opacity:.16; filter:grayscale(1);}
+.bar.hl-mid{box-shadow:0 0 0 3px var(--purple), 0 0 18px var(--purple); transform:scale(1.08); z-index:1; position:relative;}
+.bar.hl-right{box-shadow:0 0 0 3px var(--red), 0 0 18px var(--red); transform:scale(1.08); z-index:1; position:relative;}
+.bar.min{background:var(--green) !important; box-shadow:0 0 0 3px var(--green), 0 0 26px var(--green); animation:pulse 1.1s ease-in-out infinite; position:relative; z-index:1;}
+@keyframes pulse{0%,100%{transform:scale(1);} 50%{transform:scale(1.12);}}
+.idx{font-size:11px; color:var(--muted); margin-top:6px; font-variant-numeric:tabular-nums;}
+.idx.out{opacity:.35;}
+.legend{display:flex; gap:16px; flex-wrap:wrap; justify-content:center; margin-top:14px; font-size:12px; color:var(--muted);}
+.legend span{display:inline-flex; align-items:center; gap:6px;}
+.dot{width:12px; height:12px; border-radius:4px; display:inline-block;}
+
+/* ---------- 工具栏 ---------- */
+.toolbar{display:flex; flex-wrap:wrap; gap:12px; align-items:center; justify-content:space-between;}
+.btn{border:1px solid var(--line); background:#fff; color:var(--ink); border-radius:8px; padding:8px 14px; font-size:13px; cursor:pointer; transition:.15s; font-family:inherit;}
+.btn:hover{border-color:var(--blue); color:var(--blue);}
+.btn:disabled{opacity:.4; cursor:not-allowed;}
+.btn.primary{background:var(--blue); color:#fff; border-color:var(--blue);}
+.btn.primary:hover{filter:brightness(1.06); color:#fff;}
+.chip{background:#fff; border:1px solid var(--line);}
+.chip.active{background:var(--blue); color:#fff; border-color:var(--blue);}
+select.btn{height:36px; padding:4px 8px;}
+
+/* ---------- 信息条 ---------- */
+.info{display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-top:18px;}
+.badge{background:#f1f5f9; border:1px solid var(--line); border-radius:99px; padding:4px 12px; font-size:13px; color:var(--muted);}
+.badge b{color:var(--ink);}
+.badge b.g{color:var(--green);} .badge b.p{color:var(--purple);} .badge b.r{color:var(--red);}
+.pbar-wrap{height:8px; background:var(--line); border-radius:99px; overflow:hidden; margin-top:14px;}
+.pbar{height:100%; background:linear-gradient(90deg,var(--green),var(--blue)); border-radius:99px; transition:width .3s;}
+
+/* ---------- 解释 ---------- */
+.explain{margin-top:16px; padding:14px 18px; border-radius:12px; background:#f8fafc; border-left:4px solid var(--blue); line-height:1.8; font-size:14px;}
+.explain b.cmp{color:var(--purple);}
+.explain b.gt{color:var(--red);}
+.explain b.ok{color:var(--green);}
+.explain .concl{display:block; margin-top:8px; font-weight:700;}
+
+/* ---------- 步骤列表 ---------- */
+.steps{max-height:340px; overflow:auto; margin-top:14px; border:1px solid var(--line); border-radius:10px;}
+.step{display:flex; gap:10px; align-items:center; padding:9px 12px; cursor:pointer; font-size:13px; color:var(--muted); border-bottom:1px solid var(--line);}
+.step:last-child{border-bottom:none;}
+.step:hover{background:#f1f5f9;}
+.step.active{background:#eff6ff; color:var(--ink); font-weight:700;}
+.step .n{font-variant-numeric:tabular-nums; min-width:20px; color:var(--muted);}
+.kind{font-size:11px; font-weight:800; color:#fff; border-radius:6px; padding:2px 8px; flex-shrink:0;}
+.k-init{background:var(--muted);} .k-cmp{background:var(--purple);}
+.k-mL{background:var(--green);} .k-mR{background:var(--red);} .k-done{background:var(--green);}
+
+@media (max-width:600px){
+  .bar{width:34px;height:34px;font-size:13px;border-radius:8px;}
+  .cell{width:42px;}
+  .arr{padding-top:56px;}
+  .pointer-layer{height:50px;}
+  .ptr{font-size:10px; padding:1px 5px;}
+  .ptr-l{top:0;} .ptr-m{top:16px;} .ptr-r{top:32px;}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <h1><span class="no">LeetCode 153</span> 寻找旋转排序数组中的最小值</h1>
+  <p class="tagline">二分查找 · 时间复杂度 O(log n) · 先看旋转、再看二分</p>
+
+  <!-- 旋转演示 -->
+  <div class="card">
+    <details open>
+      <summary>💡 第一步 · 什么是「旋转数组」？（点开，点“再旋转1次”播放）</summary>
+      <p class="hint">
+        旋转 k 次 = 把末尾的 k 个元素<b>依次搬到最前面</b>。旋转后数组仍是“两段升序”，中间出现一个
+        <b>断点</b>。蓝色的元素都大于橙色元素，<b class="ok">最小值就在橙色段开头（断点之后）</b>——
+        而我们并不知道断点在哪，所以要二分去找它。
+      </p>
+      <div class="demo-rot">
+        <div>
+          <div class="mini-lbl">原数组（升序）</div>
+          <div class="mini-row" id="origArr"></div>
+        </div>
+        <div style="font-size:20px; color:var(--muted);">→</div>
+        <div>
+          <div class="mini-lbl">旋转 <b id="rotK">0</b> 次后</div>
+          <div class="mini-row" id="rotArr"></div>
+        </div>
+      </div>
+      <div style="margin-top:14px; display:flex; gap:8px; justify-content:center;">
+        <button class="btn primary" id="btnRotate">↻ 再旋转 1 次</button>
+        <button class="btn" id="btnRotReset">↺ 归零</button>
+      </div>
+    </details>
+  </div>
+
+  <!-- 二分可视化 -->
+  <div class="card">
+    <div class="toolbar">
+      <div class="seg-ex" id="exampleBtns"></div>
+      <div class="seg-ex">
+        <button class="btn" id="btnPrev">◀ 上一步</button>
+        <button class="btn primary" id="btnPlay">▶ 播放</button>
+        <button class="btn" id="btnNext">下一步 ▶</button>
+        <button class="btn" id="btnReset">↺ 重置</button>
+        <select id="speed" class="btn" title="播放速度">
+          <option value="1400">慢速</option>
+          <option value="900" selected>标准</option>
+          <option value="450">快速</option>
+        </select>
+      </div>
+    </div>
+
+    <div id="viz" class="arr"></div>
+
+    <div class="legend">
+      <span><i class="dot" style="background:var(--blue)"></i>较大的左段</span>
+      <span><i class="dot" style="background:var(--orange)"></i>含最小值的右段</span>
+      <span><i class="dot" style="background:var(--green)"></i>left / 最小值</span>
+      <span><i class="dot" style="background:var(--purple)"></i>mid</span>
+      <span><i class="dot" style="background:var(--red)"></i>right</span>
+      <span><i class="dot" style="background:#e2e8f0; border:1px dashed #94a3b8;"></i>已排除</span>
+    </div>
+
+    <div class="info">
+      <span class="badge">候选区间 <b>[<span id="infoL">0</span> , <span id="infoR">0</span>]</b></span>
+      <span class="badge">区间长度 <b id="infoLen">1</b></span>
+      <span class="badge" id="cmpInfo" style="display:none;">比较 <b class="p" id="cmpA">0</b> <span id="cmpSym" style="font-weight:800;">></span> <b class="r" id="cmpB">0</b></span>
+      <span class="badge" style="margin-left:auto;">第 <b id="stepNo">1</b> / <span id="stepTotal">1</span> 步</span>
+    </div>
+    <div class="pbar-wrap"><div class="pbar" id="pbar" style="width:100%"></div></div>
+
+    <div class="explain" id="explain"></div>
+  </div>
+
+  <!-- 步骤时间线 -->
+  <div class="card">
+    <div style="font-weight:700; margin-bottom:4px;">📋 完整过程（点击任意步骤可跳转）</div>
+    <div class="steps" id="stepsList"></div>
+  </div>
+
+</div>
+
+<script>
+/* ================= 数据 ================= */
+const EXAMPLES = [
+  { label:'示例1', nums:[3,4,5,1,2],       original:[1,2,3,4,5],     k:3 },
+  { label:'示例2', nums:[4,5,6,7,0,1,2],   original:[0,1,2,4,5,6,7], k:4 },
+  { label:'未旋转', nums:[0,1,2,4,5,6,7],  original:[0,1,2,4,5,6,7], k:0 },
+  { label:'旋转1次', nums:[2,1],           original:[1,2],           k:1 },
+  { label:'单元素', nums:[1],              original:[1],             k:0 },
+];
+
+/* ================= 生成二分步骤 ================= */
+function buildSteps(nums){
+  const steps=[];
+  let left=0, right=nums.length-1;
+  steps.push({kind:'init', left, right, mid:null,
+    text:`数组共 <b>${nums.length}</b> 个元素。用两个指针框住整个数组：<b class="ok">left = 0</b>、<b class="r">right = ${right}</b>。` +
+         `<br>数组虽然被旋转过，但仍是“两段升序”：蓝色段的值都大于橙色段。<b>最小值藏在橙色段开头（断点处）</b>，我们通过不断缩小 [left, right] 把它找出来。`});
+
+  while(left < right){
+    const mid = left + ((right - left) >> 1);
+    const greater = nums[mid] > nums[right];
+
+    steps.push({kind:'cmp', left, right, mid, greater,
+      text:`取中间位置 <b class="p">mid = ${mid}</b>，比较 <b class="cmp">nums[mid] = ${nums[mid]}</b> 与 <b class="cmp">nums[right] = ${nums[right]}</b>：` +
+           `<b class="${greater?'gt':'ok'}">${nums[mid]} ${greater?'>':'≤'} ${nums[right]}</b>`,
+      concl: greater
+        ? `${nums[mid]} > ${nums[right]} ⇒ <b>mid 落在“大的蓝色段”</b>，断点（最小值）一定在 mid 的右边`
+        : `${nums[mid]} ≤ ${nums[right]} ⇒ <b>mid 落在“小的橙色段”</b>，最小值一定在 mid 处或 mid 的左边`});
+
+    if(greater){
+      steps.push({kind:'mL', left:mid+1, right, mid:null, from:left,
+        text:`结论：最小值在右边 ⇒ <b>left</b> 从 <b>${left}</b> 跳到 <b class="ok">${mid+1}</b>。蓝色段整体被排除，区间缩为 [${mid+1}, ${right}]。`});
+      left = mid + 1;
+    }else{
+      steps.push({kind:'mR', left, right:mid, mid:null, from:right,
+        text:`结论：最小值在左边 ⇒ <b>right</b> 从 <b>${right}</b> 收到 <b class="r">${mid}</b>。mid 右侧的元素都 ≥ nums[mid]，不可能是最小值。区间缩为 [${left}, ${mid}]。`});
+      right = mid;
+    }
+  }
+
+  steps.push({kind:'done', left, right, mid:left,
+    text:`区间收拢到一个点：<b class="ok">left == right == ${left}</b>。<br>` +
+         `当前这个位置就是最小值所在 → <b class="ok">最小值 = nums[${left}] = ${nums[left]}</b> ✓`});
+  return steps;
+}
+
+/* ================= 状态 ================= */
+let ex=0, steps=[], si=0, timer=null, rotK=0;
+const $=id=>document.getElementById(id);
+
+/* ================= 渲染主视图 ================= */
+function barClass(i,nums,s){
+  const n=nums.length;
+  const inRange = i>=s.left && i<=s.right;
+  let cls = (nums[i] > nums[n-1]) ? 'seg-left' : 'seg-right';
+  if(!inRange) cls += ' out';
+  if(s.kind==='cmp'){
+    if(i===s.mid) cls += ' hl-mid';
+    if(i===s.right) cls += ' hl-right';
+  }
+  if(s.kind==='done' && i===s.left) cls += ' min';
+  return cls;
+}
+function pct(i,n){ return ((i+0.5)/n*100).toFixed(2)+'%'; }
+
+function ptrTags(s,n){
+  if(s.kind==='done') return `<span class="ptr ptr-l" style="left:${pct(s.left,n)}">✓ 最小值</span>`;
+  let t=`<span class="ptr ptr-l" style="left:${pct(s.left,n)}">L=${s.left}</span>`;
+  if(s.kind==='cmp') t+=`<span class="ptr ptr-m" style="left:${pct(s.mid,n)}">M=${s.mid}</span>`;
+  t+=`<span class="ptr ptr-r" style="left:${pct(s.right,n)}">R=${s.right}</span>`;
+  return t;
+}
+
+function renderViz(){
+  const nums=EXAMPLES[ex].nums, n=nums.length, s=steps[si];
+  let html=`<div class="pointer-layer">${ptrTags(s,n)}</div>`;
+  for(let i=0;i<n;i++){
+    const out = (i<s.left||i>s.right) ? 'out' : '';
+    html+=`<div class="cell"><div class="bar ${barClass(i,nums,s)}">${nums[i]}</div><div class="idx ${out}">${i}</div></div>`;
+  }
+  $('viz').innerHTML=html;
+
+  $('infoL').textContent=s.left;
+  $('infoR').textContent=s.right;
+  $('infoLen').textContent=s.right-s.left+1;
+  $('pbar').style.width=(100*(s.right-s.left+1)/n)+'%';
+
+  const ci=$('cmpInfo');
+  if(s.kind==='cmp'){
+    ci.style.display='';
+    $('cmpA').textContent=nums[s.mid];
+    $('cmpB').textContent=nums[s.right];
+    $('cmpSym').textContent=s.greater?'>':'≤';
+  }else ci.style.display='none';
+
+  $('explain').innerHTML = s.text + (s.concl?`<span class="concl">→ ${s.concl}</span>`:'');
+  $('stepNo').textContent=si+1;
+  $('stepTotal').textContent=steps.length;
+
+  renderStepsList();
+  $('btnPrev').disabled=si===0;
+  $('btnNext').disabled=si===steps.length-1;
+}
+
+/* ================= 步骤时间线 ================= */
+const KIND_META={init:['初始','k-init'],cmp:['比较','k-cmp'],mL:['移动 left','k-mL'],mR:['移动 right','k-mR'],done:['完成','k-done']};
+function shortText(s){
+  const nums=EXAMPLES[ex].nums;
+  if(s.kind==='init') return '指针框住整个数组';
+  if(s.kind==='cmp')  return `nums[${s.mid}]=${nums[s.mid]} ${s.greater?'>':'≤'} nums[${s.right}]=${nums[s.right]}`;
+  if(s.kind==='mL')   return `left: ${s.from} → ${s.left}（排除蓝色段）`;
+  if(s.kind==='mR')   return `right: ${s.from} → ${s.right}（排除右侧较大段）`;
+  return `最小值 = ${nums[s.left]}`;
+}
+function renderStepsList(){
+  const el=$('stepsList');
+  let html='';
+  steps.forEach((s,i)=>{
+    const [label,cls]=KIND_META[s.kind];
+    html+=`<div class="step ${i===si?'active':''}" data-i="${i}">
+             <span class="n">${i+1}</span><span class="kind ${cls}">${label}</span><span>${shortText(s)}</span>
+           </div>`;
+  });
+  el.innerHTML=html;
+  el.querySelectorAll('.step').forEach(el2=>{
+    el2.onclick=()=>{ stop(); si=+el2.dataset.i; renderViz(); };
+  });
+}
+
+/* ================= 控件 ================= */
+function go(d){ stop(); si=Math.max(0,Math.min(steps.length-1,si+d)); renderViz(); }
+function reset(){ stop(); si=0; renderViz(); }
+function stop(){ if(timer){ clearInterval(timer); timer=null; $('btnPlay').textContent='▶ 播放'; } }
+function play(){
+  if(timer){ stop(); return; }
+  const speed=+$('speed').value;
+  $('btnPlay').textContent='⏸ 暂停';
+  timer=setInterval(()=>{
+    if(si>=steps.length-1){ stop(); return; }
+    si++; renderViz();
+  }, speed);
+}
+
+$('btnPrev').onclick=()=>go(-1);
+$('btnNext').onclick=()=>go(1);
+$('btnReset').onclick=reset;
+$('btnPlay').onclick=play;
+$('speed').onchange=()=>{ if(timer){ stop(); play(); } };
+
+/* ================= 示例按钮 ================= */
+const eb=$('exampleBtns');
+EXAMPLES.forEach((e,i)=>{
+  const b=document.createElement('button');
+  b.className='btn chip'; b.textContent=e.label;
+  b.onclick=()=>{ stop(); ex=i; steps=buildSteps(e.nums); si=0; rotK=0; renderRot(); renderViz(); markChips(); };
+  eb.appendChild(b);
+});
+function markChips(){ [...eb.children].forEach((b,i)=>b.classList.toggle('active', i===ex)); }
+
+/* ================= 旋转演示 ================= */
+function rot(arr,k){ const n=arr.length; k=((k%n)+n)%n; return arr.slice(n-k).concat(arr.slice(0,n-k)); }
+function renderRot(){
+  const e=EXAMPLES[ex];
+  $('rotK').textContent=rotK;
+  $('origArr').innerHTML=e.original.map(v=>`<span class="bar-mini" style="background:var(--green)">${v}</span>`).join('');
+  const cur=rot(e.original,rotK), n=cur.length, last=cur[n-1], min=Math.min(...cur);
+  let html='';
+  cur.forEach((v,i)=>{
+    const bg=(v>last)?'var(--blue)':'var(--orange)';
+    const glow=(v===min)?'box-shadow:0 0 0 2px var(--green), 0 0 10px var(--green);':'';
+    const pop=(i===0&&rotK>0)?'animation:popIn .35s ease;':'';
+    html+=`<span class="bar-mini" style="background:${bg}; ${glow} ${pop}">${v}</span>`;
+  });
+  $('rotArr').innerHTML=html;
+}
+$('btnRotate').onclick=()=>{ rotK++; renderRot(); };
+$('btnRotReset').onclick=()=>{ rotK=0; renderRot(); };
+
+/* ================= 启动 ================= */
+steps=buildSteps(EXAMPLES[0].nums);
+markChips(); renderRot(); renderViz();
+</script>
+</body>
+</html>

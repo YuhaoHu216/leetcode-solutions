@@ -1,4 +1,4 @@
-package question67;
+package question153;
 
 /**
  * 153. 寻找旋转排序数组中的最小值
@@ -18,6 +18,7 @@ package question67;
  * 解释：原数组为 [0,1,2,4,5,6,7] ，旋转 4 次得到输入数组。
  */
 class Solution {
+    // 其实就是找断点 原来升序数组的开头 旋转过后就是两段升序数组
     public int findMin(int[] nums) {
         int left = 0;
         int right = nums.length - 1;
@@ -28,6 +29,7 @@ class Solution {
             if(nums[mid] > nums[right]){
                 left = mid + 1;
             }else{
+                // 这里不减去1是因为mid值可能就是最小值不能无视
                 right = mid;
             }
         }
