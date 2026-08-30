@@ -17,7 +17,7 @@ package question66;
  * 输出：-1
  */
 class Solution {
-    // 核心原理: 二分查找 先确定数组那边有序 然后确定目标数在那边 最后更新left和right
+    // 核心原理: 二分查找 先确定数组哪边有序 然后确定目标数在那边 最后更新left和right
     public int search(int[] nums, int target) {
 
         int left = 0;
