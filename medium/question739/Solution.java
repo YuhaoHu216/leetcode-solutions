@@ -11,22 +11,23 @@ import java.util.LinkedList;
  * 输出: [1,1,4,2,1,1,0,0]
  */
 class Solution {
+    // 当前温度比栈顶那天更高 → 当前天就是栈顶天的"下一个更高温度日"（一次性结算前面所有能被当前天解决的下标）
     public int[] dailyTemperatures(int[] temperatures) {
 
         int days = temperatures.length;
         int[] result = new int[days];
-        LinkedList<Integer> stack = new LinkedList<>();
+        LinkedList<Integer> stack = new LinkedList<>(); // 单调栈，存"还没找到更高温度"的天下标，栈内温度从底到顶递减
 
         for(int i = 0; i < days; i++){
 
             while(!stack.isEmpty() && temperatures[stack.peek()] < temperatures[i] ){
-                int preIndex = stack.pop();
-                result[preIndex] = i - preIndex;
+                int preIndex = stack.pop();          // 弹出：它已经找到答案，出现了温度更高的天
+                result[preIndex] = i - preIndex;     // 答案 = 当前下标 - 被结算下标，即相差几天
             }
 
-            stack.push(i);
+            stack.push(i);  // 当前天入栈，等未来更高的温度来"认领"它
         }
 
-        return result;
+        return result;  // 栈里剩下的下标说明之后没有更高温度，默认值 0 即答案
     }
 }
