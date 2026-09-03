@@ -16,6 +16,7 @@ import java.util.LinkedList;
 class MinStack {
 
     // 所谓最小栈就是每个元素存储其值的时候也要存当前的最小值
+    // 注意数组定义
 
     private LinkedList<int[]> stack = new LinkedList<int[]>();
 
