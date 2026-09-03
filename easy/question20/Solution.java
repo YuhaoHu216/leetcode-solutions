@@ -12,6 +12,7 @@ import java.util.LinkedList;
  *
  */
 class Solution {
+    // 注意只有一个左（右）括号的情况，要判定栈的类型
     public boolean isValid(String s) {
         char[] str = s.toCharArray();
         LinkedList<Character> stack = new LinkedList<>();
