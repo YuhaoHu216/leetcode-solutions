@@ -16,10 +16,11 @@ package question121;
  * 解释：在这种情况下, 没有交易完成, 所以最大利润为 0。
  */
 class Solution {
+    // // 遍历每只股票的价格 维护最小价格和最大利润 注意最大利润的计算方法
     public int maxProfit(int[] prices) {
         int max = 0;
         int min = Integer.MAX_VALUE; // 初始化为正无穷大
-        // 遍历每只股票的价格 维护最小价格和最大利润
+
         for(int i = 0; i < prices.length; i++){
             min = Math.min(prices[i],min);
             max = Math.max(max,prices[i]-min);
