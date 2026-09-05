@@ -17,40 +17,40 @@ import java.util.LinkedList;
  * 输出："accaccacc"
  */
 class Solution {
+    // 双栈解法：kStack 存每一层括号的重复次数 k，prevStack 存每一层括号之前的字符串
     public String decodeString(String s) {
 
-        int multi = 0;
-        LinkedList<Integer> stack_multi = new LinkedList<>();
-        LinkedList<String> stack_string = new LinkedList<>();
-        StringBuilder result = new StringBuilder();
+        int curK = 0;                                     // 当前这一层正在累积的重复次数
+        LinkedList<Integer> kStack = new LinkedList<>();  // 各层【重复次数 k】的栈
+        LinkedList<String> prevStack = new LinkedList<>();// 各层【已拼好的字符串】的栈
+        StringBuilder curStr = new StringBuilder();       // 当前这一层正在拼接的字符串
 
-        for(char c : s.toCharArray()){
-            // 左括号进行入栈(乘数和已排好的字符串),并且准备下一次入栈
-            if(c == '['){
-                stack_multi.push(multi);
-                stack_string.push(result.toString());
-                multi = 0;
-                result = new StringBuilder();
+        for (char c : s.toCharArray()) {
+            // 遇到 '['：进入新的一层，把当前层状态入栈保存，然后重置
+            if (c == '[') {
+                kStack.push(curK);
+                prevStack.push(curStr.toString());
+                // 重置乘数和要乘的字符串
+                curK = 0;
+                curStr = new StringBuilder();
             }
-            // 右括号进行出栈,将已有字符串重复并且和最新入栈的字符串拼接
-            else if(c == ']'){
-                int current_multi = stack_multi.pop();
-                StringBuilder temp = new StringBuilder();
-                String pre_string = stack_string.pop();
-                for(int i = 0; i < current_multi ; i++) temp.append(result);
-                result = new StringBuilder(pre_string + temp.toString());
-
+            // 遇到 ']'：结束一层，把本层字符串重复 k 次后拼回上一层
+            else if (c == ']') {
+                int k = kStack.pop();
+                String prev = prevStack.pop();
+                StringBuilder segment = new StringBuilder();
+                for (int i = 0; i < k; i++) segment.append(curStr);
+                curStr = new StringBuilder(prev).append(segment);
             }
-            // 如果是数字就记录成乘数,注意有连续数字的情况
-            else if(c >= '0' && c <= '9'){
-                multi = multi * 10 + Integer.parseInt(c + "");
+            // 是数字：累积成 k（注意连续数字表示多位数）
+            else if (c >= '0' && c <= '9') {
+                curK = curK * 10 + Integer.parseInt(c + "");
             }
-            // 字母就直接添加到最终结果里
-            else{
-                result.append(c);
+            // 是字母：直接加到当前层
+            else {
+                curStr.append(c);
             }
-
         }
-        return result.toString();
+        return curStr.toString();
     }
 }
