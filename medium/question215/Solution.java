@@ -2,6 +2,7 @@ package question215;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.PriorityQueue;
 import java.util.Random;
 
 
@@ -18,6 +19,8 @@ import java.util.Random;
  *  输出：4
  *
  */
+// 快速选择
+// 注意获取随机数的语法
 class Solution {
         private int quickSelect(List<Integer> nums, int k) {
             // 随机选择基准数
@@ -35,12 +38,13 @@ class Solution {
                 else
                     equal.add(num);
             }
+            // 因为是第K大，所以元素从大到小整体顺序 big->equal->small
             // 第 k 大元素在 big 中，递归划分
             if (k <= big.size())
                 return quickSelect(big, k);
-            // 第 k 大元素在 small 中，递归划分 这里条件可等价为 big.size() + equal.size() < k 元素从大到小依次在big equal small 中
-            if (nums.size() - small.size() < k)
-                return quickSelect(small, k - nums.size() + small.size());
+            // 第 k 大元素在 small 中，递归划分 元素从大到小依次在big equal small 中
+            if (k > big.size() + equal.size())
+                return quickSelect(small, k - big.size() - equal.size());
             // 第 k 大元素在 equal 中，直接返回 pivot
             return pivot;
         }
@@ -53,4 +57,150 @@ class Solution {
             return quickSelect(numList, k);
         }
 
+}
+
+// 用小顶堆（现成数据结构）
+class Solution2 {
+    public int findKthLargest(int[] nums, int k) {
+        // 小顶堆
+        PriorityQueue<Integer> minHeap = new PriorityQueue<>();
+        for (int num : nums) {
+            minHeap.offer(num);
+            if (minHeap.size() > k) {
+                minHeap.poll(); // 弹出最小的
+            }
+        }
+        return minHeap.peek(); // 堆顶就是第k大
+    }
+}
+
+// 手写小顶堆
+class MinHeap {
+
+    private int[] heap;
+    private int size;
+
+    public MinHeap() {
+        heap = new int[16];
+        size = 0;
+    }
+
+    public MinHeap(int capacity) {
+        heap = new int[capacity];
+        size = 0;
+    }
+
+    // 插入元素
+    public void offer(int val) {
+        ensureCapacity();
+
+        heap[size] = val;
+        siftUp(size);
+
+        size++;
+    }
+
+    // 获取堆顶
+    public int peek() {
+        if (size == 0) {
+            throw new RuntimeException("Heap is empty");
+        }
+
+        return heap[0];
+    }
+
+    // 删除并返回堆顶
+    public int poll() {
+        if (size == 0) {
+            throw new RuntimeException("Heap is empty");
+        }
+
+        int result = heap[0];
+
+        // 最后一个元素放到堆顶
+        heap[0] = heap[size - 1];
+        size--;
+
+        // 向下调整
+        siftDown(0);
+
+        return result;
+    }
+
+    // 当前堆大小
+    public int size() {
+        return size;
+    }
+
+    // 是否为空
+    public boolean isEmpty() {
+        return size == 0;
+    }
+
+    // 插入后的上浮操作
+    private void siftUp(int index) {
+        while (index > 0) {
+
+            int parent = (index - 1) / 2;
+
+            // 父节点比当前节点小，满足小顶堆
+            if (heap[parent] <= heap[index]) {
+                break;
+            }
+
+            swap(parent, index);
+
+            index = parent;
+        }
+    }
+
+    // 删除后的下沉操作
+    private void siftDown(int index) {
+        while (true) {
+
+            int left = index * 2 + 1;
+            int right = index * 2 + 2;
+
+            int smallest = index;
+
+            // 找三个节点中最小的
+            if (left < size && heap[left] < heap[smallest]) {
+                smallest = left;
+            }
+
+            if (right < size && heap[right] < heap[smallest]) {
+                smallest = right;
+            }
+
+            // 当前节点已经最小，不需要调整
+            if (smallest == index) {
+                break;
+            }
+
+            swap(index, smallest);
+
+            index = smallest;
+        }
+    }
+
+    // 扩容
+    private void ensureCapacity() {
+        if (size < heap.length) {
+            return;
+        }
+
+        int[] newHeap = new int[heap.length * 2];
+
+        for (int i = 0; i < heap.length; i++) {
+            newHeap[i] = heap[i];
+        }
+
+        heap = newHeap;
+    }
+
+    private void swap(int i, int j) {
+        int temp = heap[i];
+        heap[i] = heap[j];
+        heap[j] = temp;
+    }
 }
