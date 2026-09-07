@@ -22,6 +22,7 @@ class Solution {
 
         for(int i = 0; i < nums.length; i++){
             int step = nums[i];
+            // 这里一定是要能跳到的地方才能更新最大距离
             if(i <= rightmost){
                 rightmost = Math.max(rightmost,i + nums[i]);
             }
