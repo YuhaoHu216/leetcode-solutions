@@ -32,16 +32,18 @@ class Solution {
             char c = s.charAt(i);
             map.put(c,i);
         }
-
+        
+        // 这里start仅是用于计算片段长度，用一个length可替代
         int start = 0;
-        int idx = 0;
+        int rightmost = 0;
         for(int i = 0; i < s.length(); i++){
             char c = s.charAt(i);
-            // 动态维护当前分区必须到达的最远边界，确保分区内的字符不会出现在后续的分区里。
-            idx = Math.max(map.get(c),idx);
-            if(i == idx){
-                result.add(idx - start + 1);
-                start = idx + 1;
+            // 维护当前段最多到达的坐标，确保后面不会出现重复的字符。
+            rightmost = Math.max(map.get(c),rightmost);
+            // 走到边界了就记录这个值，重置计算片段长度的参数
+            if(i == rightmost){
+                result.add(rightmost - start + 1);
+                start = rightmost + 1;
             }
         }
         return result;
