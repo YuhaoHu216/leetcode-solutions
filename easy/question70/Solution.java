@@ -17,7 +17,6 @@ package question70;
  * 1. 1 阶 + 1 阶 + 1 阶
  * 2. 1 阶 + 2 阶
  * 3. 2 阶 + 1 阶
- *
  */
 class Solution {
     // 到达第x楼的表达式可写为f(x) = f(x-1) + f(x-2)
