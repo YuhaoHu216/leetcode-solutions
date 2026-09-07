@@ -15,6 +15,7 @@ import java.util.PriorityQueue;
  *  输出: [1]
  */
 class Solution {
+    // 注意 map 的健集合方法用法
     public int[] topKFrequent(int[] nums, int k) {
 
         // 将每个数字及其出现次数记录在map里
@@ -39,7 +40,7 @@ class Solution {
 
         // 创建返回值
         int[] result = new int[k];
-
+        // 这里返回的是从小到大的顺序 如果没有顺序要求索引可从0开始
         for(int i = k - 1; i >= 0 ; i--){
             result[i] = heap.poll();
         }
