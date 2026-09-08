@@ -15,6 +15,7 @@ import java.util.List;
  * 输出: [[1]]
  */
 public class Solution {
+    // 按每一层，每层每个数字构造，每个数字要么是1要么是上一层的两个数相加的来的
     public List<List<Integer>> generate(int numRows) {
         List<List<Integer>> result = new ArrayList<>();
         // i表示要构造第几层
