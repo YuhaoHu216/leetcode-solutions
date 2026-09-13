@@ -1,4 +1,4 @@
-package question86;
+package question139;
 
 import java.util.HashSet;
 import java.util.List;
@@ -36,7 +36,7 @@ class Solution {
             for (int j = 0; j < i; j++) {
                 if (dp[j] && hashSet.contains(s.substring(j, i))) {
                     dp[i] = true;
-                    break;
+                    break;  // 这里break起到一个剪枝的作用，也可以不要
                 }
             }
         }
