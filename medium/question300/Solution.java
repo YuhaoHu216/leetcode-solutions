@@ -16,6 +16,8 @@ import java.util.Arrays;
  * 示例 3：
  * 输入：nums = [7,7,7,7,7,7,7]
  * 输出：1
+ * 时间复杂度：n^2 (外层循环n次，内层平均循环n/2次 总操作数为n^2/2)
+ * 空间复杂度：n
  */
 class Solution {
     public int lengthOfLIS(int[] nums) {
