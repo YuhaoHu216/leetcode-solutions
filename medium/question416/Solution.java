@@ -1,4 +1,4 @@
-package question89;
+package question416;
 
 /**
  * 416. 分割等和子集
@@ -13,6 +13,7 @@ package question89;
  * 解释：数组不能分割成两个元素和相等的子集。
  */
 class Solution {
+    // 把"能否分成两个等和子集"转化为"能否用数组里每个数至多一次凑出 sum/2"，然后用一维布尔 0-1 背包（外层遍历数字、内层容量倒序）判断可行性。
     public boolean canPartition(int[] nums) {
         int sum = 0;
         for(int num : nums){
@@ -23,7 +24,7 @@ class Solution {
 
         int target = sum / 2;
 
-        // dp[i]表示是子集和是否能等于i
+        // dp[i]表示子集和是否能等于i
         boolean[] dp = new boolean[target + 1];
 
         dp[0] = true;
