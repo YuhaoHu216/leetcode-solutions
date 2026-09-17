@@ -12,6 +12,7 @@ package question152;
  * 输入: nums = [-2,0,-1]
  * 输出: 0
  * 解释: 结果不能为 2, 因为 [-2,-1] 不是子数组。
+ *
  */
 class Solution {
     public int maxProduct(int[] nums) {
