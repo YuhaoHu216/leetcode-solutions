@@ -1,0 +1,699 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>LeetCode 72 · 编辑距离 可视化</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; }
+  :root {
+    --cw: 54px; --ch: 54px; --gap: 16px;
+    --del: #4dabf7;   /* 删除 ↑ */
+    --ins: #ffa94d;   /* 插入 ← */
+    --rep: #c084fc;   /* 替换 ↖ */
+    --eq:  #51cf66;   /* 相等 →  免费继承 */
+    --cur: #ffd43b;   /* 当前格 */
+    --fg: #e9edfb;
+    --muted: #8792b3;
+    --line: rgba(255,255,255,.10);
+    --card: rgba(255,255,255,.045);
+    --mono: ui-monospace, "Cascadia Code", Consolas, "Courier New", monospace;
+  }
+  html, body { height: 100%; }
+  body {
+    margin: 0; padding: 22px;
+    color: var(--fg);
+    font-family: ui-sans-serif, system-ui, "Segoe UI", "Microsoft YaHei", sans-serif;
+    background:
+      radial-gradient(1100px 700px at 12% -12%, #1c2c62 0%, transparent 58%),
+      radial-gradient(900px 620px at 105% 112%, #2b1a52 0%, transparent 55%),
+      #080d1c;
+    display: flex; justify-content: center;
+  }
+  .app { width: 100%; max-width: 1280px; display: flex; flex-direction: column; gap: 14px; }
+
+  /* ---------- 顶部 ---------- */
+  header {
+    display: flex; flex-wrap: wrap; align-items: center; gap: 14px 18px;
+    padding: 14px 18px; background: var(--card);
+    border: 1px solid var(--line); border-radius: 16px;
+  }
+  h1 { font-size: 17px; font-weight: 700; white-space: nowrap; }
+  h1 small { font-size: 12px; font-weight: 500; color: var(--muted); margin-left: 8px; }
+  .field { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--muted); }
+  .field input {
+    width: 148px; padding: 7px 10px; border-radius: 9px;
+    border: 1px solid var(--line); background: rgba(0,0,0,.3);
+    color: var(--fg); font-size: 14px; font-family: var(--mono); outline: none;
+    transition: border-color .2s, box-shadow .2s;
+  }
+  .field input:focus { border-color: rgba(120,160,255,.75); box-shadow: 0 0 0 3px rgba(90,130,255,.16); }
+  .arrow { color: var(--muted); font-size: 16px; }
+
+  button {
+    cursor: pointer; font-family: inherit; font-size: 13px;
+    padding: 8px 13px; border-radius: 10px;
+    border: 1px solid var(--line); background: rgba(255,255,255,.06); color: var(--fg);
+    transition: background .18s, border-color .18s, filter .18s, opacity .18s;
+  }
+  button:hover:not(:disabled) { background: rgba(255,255,255,.13); border-color: rgba(255,255,255,.22); }
+  button:active:not(:disabled) { transform: translateY(1px); }
+  button:disabled { opacity: .32; cursor: not-allowed; }
+  button.primary { background: linear-gradient(180deg,#3b6cf6,#2a52d4); border-color: #4f7bff; font-weight: 600; }
+  button.primary:hover { filter: brightness(1.14); }
+  button.active { border-color: var(--cur); color: var(--cur); box-shadow: 0 0 0 1px var(--cur) inset; }
+
+  /* ---------- 主体 ---------- */
+  .main { display: grid; grid-template-columns: minmax(0,1fr) 372px; gap: 14px; }
+  @media (max-width: 1000px) { .main { grid-template-columns: 1fr; } }
+
+  .board-wrap {
+    position: relative; height: min(72vh, 740px); min-height: 400px;
+    border: 1px solid var(--line); border-radius: 18px;
+    background: linear-gradient(180deg, rgba(255,255,255,.035), rgba(255,255,255,.012));
+    overflow: hidden;
+  }
+  .board {
+    position: absolute; left: 50%; top: 50%;
+    transform-origin: center center;
+    display: grid; gap: var(--gap); grid-auto-rows: var(--ch);
+  }
+  .links { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 0; }
+
+  .cell {
+    position: relative; z-index: 1;
+    display: flex; align-items: center; justify-content: center;
+    border-radius: 12px; border: 1px solid transparent;
+    background: rgba(255,255,255,.035);
+    font-variant-numeric: tabular-nums;
+    transition: background .22s, border-color .22s, color .22s, opacity .22s;
+  }
+  .cell.head {
+    background: transparent; border-color: transparent;
+    flex-direction: column; gap: 1px; color: var(--muted);
+  }
+  .cell.head .ch { font-size: 17px; font-weight: 600; color: #cfd8f5; font-family: var(--mono); }
+  .cell.head .ix { font-size: 10px; color: #66719a; line-height: 1; }
+  .cell.corner { background: transparent; border-color: transparent; }
+  .cell.corner .ax { font-size: 11px; color: #4d5878; font-family: var(--mono); }
+
+  .cell.data { font-size: 17px; font-weight: 600; color: #4e597c; overflow: hidden; }
+  .cell.data.filled { color: #e9edfb; background: rgba(255,255,255,.075); }
+  .cell.data.filled.del { color: #8ec9ff; background: rgba(77,171,247,.13);  border-color: rgba(77,171,247,.24); }
+  .cell.data.filled.ins { color: #ffc98a; background: rgba(255,169,77,.13);  border-color: rgba(255,169,77,.24); }
+  .cell.data.filled.rep { color: #d8b4fe; background: rgba(192,132,252,.13); border-color: rgba(192,132,252,.24); }
+  .cell.data.filled.eq  { color: #8ce99a; background: rgba(81,207,102,.13);  border-color: rgba(81,207,102,.24); }
+
+  .cell.data.current { outline: 2px solid var(--cur); outline-offset: 2px; z-index: 3; }
+  .cell.data.dep { outline: 2px solid var(--dcolor); outline-offset: 2px; z-index: 2; }
+  .cell.data.onpath::after {
+    content: ""; position: absolute; inset: 3px; border-radius: 9px;
+    border: 2px solid rgba(255,212,59,.85); pointer-events: none;
+    animation: pathPulse 1.6s ease-in-out infinite;
+  }
+  @keyframes pathPulse { 0%,100% { opacity: .3; } 50% { opacity: 1; } }
+  @keyframes pop { from { transform: scale(.72); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+  .cell.pop { animation: pop .28s cubic-bezier(.34,1.56,.64,1); }
+
+  /* ---------- 右侧面板 ---------- */
+  .panel {
+    height: 100%; max-height: min(72vh, 740px); overflow: auto;
+    display: flex; flex-direction: column; gap: 12px;
+    padding: 18px; border: 1px solid var(--line); border-radius: 18px;
+    background: var(--card);
+  }
+  .p-head {
+    font-size: 11.5px; letter-spacing: .08em; text-transform: uppercase;
+    color: var(--muted); font-family: var(--mono);
+  }
+  .p-title { font-size: 26px; font-weight: 700; font-family: var(--mono); letter-spacing: .5px; }
+  .p-desc { font-size: 13.5px; line-height: 1.75; color: #b9c3e0; }
+  .p-desc code {
+    font-family: var(--mono); font-size: 12.5px;
+    background: rgba(255,255,255,.08); padding: 1px 5px; border-radius: 5px; color: #fff;
+  }
+  .cands { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+  .cand {
+    display: grid; grid-template-columns: 18px 40px 1fr; align-items: center; gap: 9px;
+    padding: 9px 11px; border-radius: 10px; font-size: 12.5px; color: var(--muted);
+    border: 1px solid var(--line); background: rgba(255,255,255,.028);
+    transition: border-color .2s, background .2s, color .2s;
+  }
+  .cand .ico { font-size: 14px; color: var(--c); text-align: center; }
+  .cand .nm { font-weight: 600; }
+  .cand .calc { font-family: var(--mono); justify-self: end; white-space: nowrap; }
+  .cand b { color: #fff; }
+  .cand.del { --c: var(--del); } .cand.ins { --c: var(--ins); }
+  .cand.rep { --c: var(--rep); } .cand.eq  { --c: var(--eq); }
+  .cand.chosen {
+    border-color: var(--c); background: rgba(255,255,255,.075); color: #fff;
+    box-shadow: 0 0 0 1px var(--c) inset;
+  }
+  .p-res {
+    margin-top: auto; padding: 12px 14px; border-radius: 12px;
+    border: 1px solid rgba(255,212,59,.34);
+    background: linear-gradient(180deg, rgba(255,212,59,.15), rgba(255,212,59,.05));
+    font-family: var(--mono); font-size: 15px; font-weight: 600;
+  }
+  .p-res b { color: var(--cur); font-size: 21px; }
+
+  /* ---------- 底部 ---------- */
+  footer {
+    display: flex; flex-wrap: wrap; align-items: center; gap: 9px;
+    padding: 12px 16px; background: var(--card);
+    border: 1px solid var(--line); border-radius: 16px;
+  }
+  .legend { display: flex; flex-wrap: wrap; gap: 12px; font-size: 12px; color: var(--muted); }
+  .legend span { display: inline-flex; align-items: center; gap: 5px; }
+  .dot { width: 9px; height: 9px; border-radius: 3px; display: inline-block; }
+  .speed { display: flex; align-items: center; gap: 9px; margin-left: auto; font-size: 12.5px; color: var(--muted); }
+  input[type=range] { width: 132px; accent-color: #3b6cf6; cursor: pointer; }
+  kbd {
+    font-family: var(--mono); font-size: 11px; padding: 1px 5px; border-radius: 5px;
+    border: 1px solid var(--line); background: rgba(255,255,255,.07); color: #cfd8f5;
+  }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <header>
+    <h1>编辑距离<small>LeetCode 72</small></h1>
+    <label class="field">word1 <input id="in1" value="horse" maxlength="10" /></label>
+    <span class="arrow">→</span>
+    <label class="field">word2 <input id="in2" value="ros" maxlength="10" /></label>
+    <button id="btnBuild">重新生成</button>
+  </header>
+
+  <div class="main">
+    <div class="board-wrap" id="boardWrap">
+      <div class="board" id="board"></div>
+    </div>
+
+    <aside class="panel">
+      <div class="p-head" id="pHead">准备就绪</div>
+      <div class="p-title" id="pTitle">dp[i][j]</div>
+      <div class="p-desc" id="pDesc">
+        点击下方 <b>▶ 播放</b> 自动填表,或用 <kbd>→</kbd> / <kbd>←</kbd> 单步执行。
+        也可以直接点击表格里任意格子跳转到那一步。
+      </div>
+      <ul class="cands" id="pCands"></ul>
+      <div class="p-res" id="pRes"></div>
+    </aside>
+  </div>
+
+  <footer>
+    <button id="btnReset" title="回到开头">⏮</button>
+    <button id="btnPrev" title="上一步">◀</button>
+    <button id="btnPlay" class="primary">▶ 播放</button>
+    <button id="btnNext" title="下一步">▶</button>
+    <button id="btnEnd" title="跳到结尾">⏭</button>
+    <button id="btnPath" title="高亮回溯出的最优路径">最优路径</button>
+    <div class="legend">
+      <span><i class="dot" style="background:var(--del)"></i>↑ 删除</span>
+      <span><i class="dot" style="background:var(--ins)"></i>← 插入</span>
+      <span><i class="dot" style="background:var(--rep)"></i>↖ 替换</span>
+      <span><i class="dot" style="background:var(--eq)"></i>↖ 字符相同</span>
+    </div>
+    <div class="speed">
+      <span>速度</span>
+      <input type="range" id="speed" min="120" max="1400" value="700" step="20" />
+    </div>
+  </footer>
+
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  var NS = 'http://www.w3.org/2000/svg';
+  var COLOR = { del: '#4dabf7', ins: '#ffa94d', rep: '#c084fc', eq: '#51cf66' };
+  var NAME  = { del: '删除', ins: '插入', rep: '替换', eq: '继承' };
+  var ICON  = { del: '↑', ins: '←', rep: '↖', eq: '↖' };
+
+  var boardEl = document.getElementById('board');
+  var wrapEl  = document.getElementById('boardWrap');
+  var pHead   = document.getElementById('pHead');
+  var pTitle  = document.getElementById('pTitle');
+  var pDesc   = document.getElementById('pDesc');
+  var pCands  = document.getElementById('pCands');
+  var pRes    = document.getElementById('pRes');
+  var in1 = document.getElementById('in1');
+  var in2 = document.getElementById('in2');
+  var btnPlay = document.getElementById('btnPlay');
+  var btnPrev = document.getElementById('btnPrev');
+  var btnNext = document.getElementById('btnNext');
+  var btnPath = document.getElementById('btnPath');
+
+  var W1 = 'horse', W2 = 'ros', m = 5, n = 3;
+  var dp = [], info = [], order = [], pos = [], cellEls = [], svgEl = null;
+  var stepIndex = 0, prevStep = -1;
+  var playing = false, timer = null, delay = 700;
+  var pathOn = false, pathSet = new Set();
+
+  /* ================= 生成 DP 表 + 每一步的元信息 ================= */
+
+  function computeDP() {
+    dp = [];
+    info = [];
+    order = [];
+    for (var a = 0; a <= m; a++) {
+      dp.push(new Array(n + 1).fill(0));
+      info.push(new Array(n + 1).fill(null));
+    }
+
+    // 第一列:word2 为空 → 只能删除
+    for (var i = 0; i <= m; i++) {
+      dp[i][0] = i;
+      if (i === 0) {
+        info[0][0] = {
+          type: 'base', value: 0, kind: 'eq',
+          desc: '边界 dp[0][0]:两个空串之间不需要任何操作。',
+          deps: []
+        };
+      } else {
+        info[i][0] = {
+          type: 'base', value: i, kind: 'del',
+          desc: '边界 dp[' + i + '][0]:word2 为空串,只能把 word1 的前 ' + i + ' 个字符逐个删除,共 ' + i + ' 次。这就是"纵向 = 删除"的来源。',
+          deps: [{ i: i - 1, j: 0, kind: 'del' }]
+        };
+      }
+      order.push([i, 0]);
+    }
+
+    // 第一行:word1 为空 → 只能插入
+    for (var j = 1; j <= n; j++) {
+      dp[0][j] = j;
+      info[0][j] = {
+        type: 'base', value: j, kind: 'ins',
+        desc: '边界 dp[0][' + j + ']:word1 为空串,只能往里面逐个插入 word2 的前 ' + j + ' 个字符,共 ' + j + ' 次。这就是"横向 = 插入"的来源。',
+        deps: [{ i: 0, j: j - 1, kind: 'ins' }]
+      };
+      order.push([0, j]);
+    }
+
+    // 主循环
+    for (var r = 1; r <= m; r++) {
+      for (var c = 1; c <= n; c++) {
+        var chA = W1[r - 1], chB = W2[c - 1];
+
+        if (chA === chB) {
+          dp[r][c] = dp[r - 1][c - 1];
+          info[r][c] = {
+            type: 'equal', value: dp[r][c], kind: 'eq',
+            desc: 'word1[' + (r - 1) + ']=' + q(chA) + ' 与 word2[' + (c - 1) + ']=' + q(chB) +
+                  ' 相同 → 这一步不用任何操作,直接继承左上角。',
+            deps: [{ i: r - 1, j: c - 1, kind: 'eq' }],
+            chosen: [r - 1, c - 1]
+          };
+        } else {
+          var vDel = dp[r - 1][c] + 1;
+          var vIns = dp[r][c - 1] + 1;
+          var vRep = dp[r - 1][c - 1] + 1;
+          var best = Math.min(vDel, vIns, vRep);
+          dp[r][c] = best;
+
+          var cands = [
+            { kind: 'del', name: '删除', icon: '↑', from: [r - 1, c],
+              base: dp[r - 1][c], val: vDel,
+              note: '删掉 word1[' + (r - 1) + ']=' + q(chA) + ',word1 变短 → i-1' },
+            { kind: 'ins', name: '插入', icon: '←', from: [r, c - 1],
+              base: dp[r][c - 1], val: vIns,
+              note: '插入 ' + q(chB) + ' 把 word2[' + (c - 1) + '] 匹配掉 → j-1' },
+            { kind: 'rep', name: '替换', icon: '↖', from: [r - 1, c - 1],
+              base: dp[r - 1][c - 1], val: vRep,
+              note: '把 ' + q(chA) + ' 换成 ' + q(chB) + ',两边各消耗一个 → i-1 且 j-1' }
+          ];
+          var picked = null;
+          for (var k = 0; k < cands.length; k++) {
+            if (cands[k].val === best) { picked = cands[k]; break; }
+          }
+          for (var t = 0; t < cands.length; t++) cands[t].chosen = (cands[t] === picked);
+
+          info[r][c] = {
+            type: 'op', value: best, kind: picked.kind, cands: cands,
+            desc: 'word1[' + (r - 1) + ']=' + q(chA) + ' ≠ word2[' + (c - 1) + ']=' + q(chB) +
+                  ' → 三种操作各自"+1 后取最小,选中了' + picked.name + '。',
+            deps: [
+              { i: r - 1, j: c,     kind: 'del' },
+              { i: r,     j: c - 1, kind: 'ins' },
+              { i: r - 1, j: c - 1, kind: 'rep' }
+            ],
+            chosen: picked.from
+          };
+        }
+        order.push([r, c]);
+      }
+    }
+
+    pos = [];
+    for (var p = 0; p <= m; p++) pos.push(new Array(n + 1).fill(-1));
+    order.forEach(function (rc, idx) { pos[rc[0]][rc[1]] = idx; });
+  }
+
+  /* ================= 构建网格 DOM ================= */
+
+  function buildDom() {
+    boardEl.innerHTML = '';
+    boardEl.style.gridTemplateColumns = 'repeat(' + (n + 2) + ', var(--cw))';
+    boardEl.style.gridTemplateRows    = 'repeat(' + (m + 2) + ', var(--ch))';
+
+    svgEl = document.createElementNS(NS, 'svg');
+    svgEl.setAttribute('class', 'links');
+    boardEl.appendChild(svgEl);
+
+    cellEls = [];
+    for (var a = 0; a <= m; a++) cellEls.push(new Array(n + 1).fill(null));
+
+    var frag = document.createDocumentFragment();
+    for (var r = 0; r < m + 2; r++) {
+      for (var c = 0; c < n + 2; c++) {
+        var d = document.createElement('div');
+        if (r === 0 && c === 0) {
+          d.className = 'cell corner';
+          d.innerHTML = '<span class="ax">dp</span>';
+        } else if (r === 0) {
+          var jj = c - 1;
+          d.className = 'cell head';
+          d.innerHTML = jj === 0
+            ? '<span class="ch">∅</span><span class="ix">0</span>'
+            : '<span class="ch">' + esc(W2[jj - 1]) + '</span><span class="ix">' + (jj - 1) + '</span>';
+        } else if (c === 0) {
+          var ii = r - 1;
+          d.className = 'cell head';
+          d.innerHTML = ii === 0
+            ? '<span class="ch">∅</span><span class="ix">0</span>'
+            : '<span class="ch">' + esc(W1[ii - 1]) + '</span><span class="ix">' + (ii - 1) + '</span>';
+        } else {
+          (function (ii, jj) {
+            d.className = 'cell data';
+            cellEls[ii][jj] = d;
+            d.addEventListener('click', function () {
+              pause();
+              stepIndex = pos[ii][jj] + 1;
+              render();
+              syncControls();
+            });
+          })(r - 1, c - 1);
+        }
+        frag.appendChild(d);
+      }
+    }
+    boardEl.appendChild(frag);
+  }
+
+  /* ================= 渲染 ================= */
+
+  function render() {
+    var advanced = (stepIndex === prevStep + 1);
+    prevStep = stepIndex;
+
+    var i, j;
+    for (i = 0; i <= m; i++) {
+      for (j = 0; j <= n; j++) {
+        var el = cellEls[i][j];
+        el.className = 'cell data';
+        el.textContent = '';
+        el.removeAttribute('style');
+        el.removeAttribute('title');
+      }
+    }
+
+    // 重建箭头层
+    svgEl.innerHTML = Object.keys(COLOR).map(function (k) {
+      return '<marker id="mk-' + k + '" viewBox="0 0 10 10" refX="6" refY="5"' +
+             ' markerWidth="3.2" markerHeight="3.2" orient="auto" markerUnits="strokeWidth">' +
+             '<path d="M0,0 L10,5 L0,10 Z" fill="' + COLOR[k] + '"/></marker>';
+    }).join('');
+
+    // 已完成的格子
+    for (var k2 = 0; k2 < stepIndex && k2 < order.length; k2++) {
+      var rc = order[k2];
+      var meta = info[rc[0]][rc[1]];
+      var cel = cellEls[rc[0]][rc[1]];
+      cel.textContent = meta.value;
+      cel.classList.add('filled', meta.kind);
+      cel.title = 'dp[' + rc[0] + '][' + rc[1] + '] = ' + meta.value;
+      if (advanced && k2 === stepIndex - 1) cel.classList.add('pop');
+    }
+
+    // 当前正在计算的格子
+    if (stepIndex < order.length) {
+      var ci = order[stepIndex][0], cj = order[stepIndex][1];
+      var cm = info[ci][cj];
+      var cur = cellEls[ci][cj];
+      cur.textContent = cm.value;
+      cur.classList.add('filled', cm.kind, 'current');
+      if (advanced) cur.classList.add('pop');
+
+      // 来源格子高亮
+      (cm.deps || []).forEach(function (dep) {
+        var den = cellEls[dep.i][dep.j];
+        var chosen = cm.chosen && cm.chosen[0] === dep.i && cm.chosen[1] === dep.j;
+        den.classList.add('dep');
+        den.style.setProperty('--dcolor', COLOR[dep.kind]);
+        den.style.outlineStyle = chosen ? 'solid' : 'dashed';
+        den.style.opacity = chosen ? '1' : '.7';
+      });
+
+      // 箭头:线沉在格子下面,只露出 gap;箭头画在线的中点(marker-mid)正好落在缝里
+      var from = center(ci, cj);
+      (cm.deps || []).forEach(function (dep) {
+        var to = center(dep.i, dep.j);
+        var chosen = cm.chosen && cm.chosen[0] === dep.i && cm.chosen[1] === dep.j;
+        var mx = (from.x + to.x) / 2, my = (from.y + to.y) / 2;
+        var p = document.createElementNS(NS, 'path');
+        p.setAttribute('d', 'M ' + to.x + ' ' + to.y + ' L ' + mx + ' ' + my + ' L ' + from.x + ' ' + from.y);
+        p.setAttribute('fill', 'none');
+        p.setAttribute('stroke', COLOR[dep.kind]);
+        p.setAttribute('stroke-width', chosen ? 4 : 2);
+        p.setAttribute('stroke-linecap', 'round');
+        p.setAttribute('marker-mid', 'url(#mk-' + dep.kind + ')');
+        if (!chosen) {
+          p.setAttribute('stroke-dasharray', '5 4');
+          p.setAttribute('opacity', '.45');
+        }
+        svgEl.appendChild(p);
+      });
+    }
+
+    // 最优路径高亮
+    if (pathOn) {
+      pathSet.forEach(function (key) {
+        var ab = key.split(',');
+        var pe = cellEls[+ab[0]][+ab[1]];
+        if (pe) pe.classList.add('onpath');
+      });
+    }
+
+    updatePanel();
+  }
+
+  function center(i, j) {
+    var el = cellEls[i][j];
+    return { x: el.offsetLeft + el.offsetWidth / 2, y: el.offsetTop + el.offsetHeight / 2 };
+  }
+
+  /* ================= 右侧面板 ================= */
+
+  function updatePanel() {
+    var total = order.length;
+
+    if (stepIndex >= total) {
+      pHead.textContent = '全部完成 · 共 ' + total + ' 步';
+      pTitle.textContent = 'dp[' + m + '][' + n + ']';
+      pDesc.innerHTML = '把 <code>' + esc(W1) + '</code> 变成 <code>' + esc(W2) + '</code> 最少需要 ' +
+                        '<b>' + dp[m][n] + '</b> 次操作。';
+      pCands.innerHTML = '';
+      pRes.innerHTML = '答案 = <b>' + dp[m][n] + '</b>';
+      return;
+    }
+
+    var ci = order[stepIndex][0], cj = order[stepIndex][1];
+    var meta = info[ci][cj];
+
+    pHead.textContent = '步骤 ' + (stepIndex + 1) + ' / ' + total;
+    pTitle.textContent = 'dp[' + ci + '][' + cj + ']';
+    pDesc.textContent = meta.desc;
+
+    if (meta.type === 'base') {
+      pCands.innerHTML =
+        '<li class="cand ' + meta.kind + ' chosen">' +
+          '<span class="ico">' + ICON[meta.kind] + '</span>' +
+          '<span class="nm">' + NAME[meta.kind] + '</span>' +
+          '<span class="calc">边界值 ' + meta.value + '</span>' +
+        '</li>';
+    } else if (meta.type === 'equal') {
+      pCands.innerHTML =
+        '<li class="cand eq chosen">' +
+          '<span class="ico">↖</span><span class="nm">继承(免费)</span>' +
+          '<span class="calc">dp[' + (ci - 1) + '][' + (cj - 1) + '] = ' + dp[ci - 1][cj - 1] + '</span>' +
+        '</li>';
+    } else {
+      pCands.innerHTML = meta.cands.map(function (c) {
+        return '<li class="cand ' + c.kind + (c.chosen ? ' chosen' : '') + '">' +
+                 '<span class="ico">' + c.icon + '</span>' +
+                 '<span class="nm">' + c.name + '</span>' +
+                 '<span class="calc">dp[' + c.from[0] + '][' + c.from[1] + ']+1 = ' +
+                   c.base + '+1 = <b>' + c.val + '</b></span>' +
+               '</li>';
+      }).join('');
+    }
+
+    pRes.innerHTML = 'dp[' + ci + '][' + cj + '] = <b>' + meta.value + '</b>';
+  }
+
+  /* ================= 最优路径回溯 ================= */
+
+  function computePath() {
+    var set = new Set();
+    var i = m, j = n, guard = 0;
+    set.add(i + ',' + j);
+    while ((i > 0 || j > 0) && guard++ < 500) {
+      if (i > 0 && j > 0 && W1[i - 1] === W2[j - 1] && dp[i][j] === dp[i - 1][j - 1]) {
+        i--; j--;
+      } else {
+        var d = i > 0 ? dp[i - 1][j] + 1 : Infinity;
+        var s = j > 0 ? dp[i][j - 1] + 1 : Infinity;
+        var r = (i > 0 && j > 0) ? dp[i - 1][j - 1] + 1 : Infinity;
+        var best = Math.min(d, s, r);
+        if (d === best) i--;
+        else if (s === best) j--;
+        else { i--; j--; }
+      }
+      set.add(i + ',' + j);
+    }
+    return set;
+  }
+
+  /* ================= 播放控制 ================= */
+
+  function next() { if (stepIndex < order.length) { stepIndex++; render(); syncControls(); } }
+  function prev() { if (stepIndex > 0) { stepIndex--; render(); syncControls(); } }
+
+  function togglePlay() {
+    if (playing) { pause(); return; }
+    if (stepIndex >= order.length) { stepIndex = 0; pathOn = false; render(); }
+    playing = true;
+    stepIndex++;
+    render();
+    syncControls();
+    if (stepIndex >= order.length) { pause(); return; }
+    schedule();
+  }
+
+  function schedule() {
+    clearTimeout(timer);
+    timer = setTimeout(function () {
+      if (!playing) return;
+      if (stepIndex >= order.length) { pause(); return; }
+      stepIndex++;
+      render();
+      syncControls();
+      schedule();
+    }, delay);
+  }
+
+  function pause() {
+    playing = false;
+    clearTimeout(timer);
+    syncControls();
+  }
+
+  function syncControls() {
+    btnPrev.disabled = stepIndex <= 0;
+    btnNext.disabled = stepIndex >= order.length;
+    btnPlay.textContent = playing ? '⏸ 暂停' : '▶ 播放';
+    btnPath.classList.toggle('active', pathOn);
+  }
+
+  /* ================= 自适应缩放 ================= */
+
+  function fit() {
+    boardEl.style.transform = 'translate(-50%,-50%)';
+    var bw = boardEl.offsetWidth, bh = boardEl.offsetHeight;
+    var aw = wrapEl.clientWidth - 28, ah = wrapEl.clientHeight - 28;
+    if (!bw || !bh) return;
+    var s = Math.min(1, aw / bw, ah / bh);
+    boardEl.style.transform = 'translate(-50%,-50%) scale(' + s + ')';
+  }
+
+  /* ================= 工具 ================= */
+
+  function q(ch) { return "'" + ch + "'"; }
+  function esc(s) {
+    return String(s).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+
+  /* ================= 入口 ================= */
+
+  function buildAll() {
+    W1 = (in1.value.trim() || 'horse').slice(0, 10);
+    W2 = (in2.value.trim() || 'ros').slice(0, 10);
+    in1.value = W1;
+    in2.value = W2;
+    m = W1.length;
+    n = W2.length;
+
+    computeDP();
+    buildDom();
+
+    pause();
+    stepIndex = 0;
+    prevStep = -1;
+    pathOn = false;
+    pathSet.clear();
+
+    render();
+    syncControls();
+    fit();
+  }
+
+  document.getElementById('btnBuild').addEventListener('click', buildAll);
+  document.getElementById('btnReset').addEventListener('click', function () {
+    pause(); stepIndex = 0; pathOn = false; render(); syncControls();
+  });
+  document.getElementById('btnPrev').addEventListener('click', function () { pause(); prev(); });
+  document.getElementById('btnNext').addEventListener('click', function () { pause(); next(); });
+  document.getElementById('btnEnd').addEventListener('click', function () {
+    pause(); stepIndex = order.length; render(); syncControls();
+  });
+  btnPlay.addEventListener('click', togglePlay);
+
+  btnPath.addEventListener('click', function () {
+    pause();
+    pathOn = !pathOn;
+    if (pathOn) pathSet = computePath();
+    render();
+    syncControls();
+  });
+
+  in1.addEventListener('keydown', function (e) { if (e.key === 'Enter') buildAll(); });
+  in2.addEventListener('keydown', function (e) { if (e.key === 'Enter') buildAll(); });
+
+  document.getElementById('speed').addEventListener('input', function (e) {
+    delay = 1520 - Number(e.target.value);   // 滑块越靠右越快
+  });
+
+  document.addEventListener('keydown', function (e) {
+    if (e.target.tagName === 'INPUT') return;
+    if (e.key === 'ArrowRight')      { e.preventDefault(); pause(); next(); }
+    else if (e.key === 'ArrowLeft')  { e.preventDefault(); pause(); prev(); }
+    else if (e.key === ' ')          { e.preventDefault(); togglePlay(); }
+    else if (e.key === 'r' || e.key === 'R') { pause(); stepIndex = 0; pathOn = false; render(); syncControls(); }
+  });
+
+  var rt = null;
+  window.addEventListener('resize', function () {
+    clearTimeout(rt);
+    rt = setTimeout(fit, 120);
+  });
+
+  buildAll();
+})();
+</script>
+</body>
+</html>

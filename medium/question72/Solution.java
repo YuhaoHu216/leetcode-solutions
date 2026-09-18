@@ -42,6 +42,7 @@ class Solution {
             dp[0][i] = i;
         }
 
+        // 对于这个二位数组，往上是删除，往左是插入，往左上是替换
         for(int i = 1; i <= m; i++){
             for(int j = 1; j <=n; j++){
                 // 如果 word1[i-1] == word2[j-1]，说明这两个字符相等，不需要操作：
