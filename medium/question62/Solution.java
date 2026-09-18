@@ -1,4 +1,4 @@
-package question91;
+package question62;
 
 /**
  * 62. 不同路径
@@ -32,6 +32,7 @@ class Solution {
         for(int i = 0; i < m; i++) dp[i][0] = 1;
         for(int i = 0; i < n; i++) dp[0][i] = 1;
 
+        // 除了第一行和第一列的格子，其他格子都是从左边格子或者上面格子来的
         for(int i = 1; i < m; i++){
             for(int j = 1; j < n; j++){
                 dp[i][j] = dp[i - 1][j] + dp[i][j - 1];
