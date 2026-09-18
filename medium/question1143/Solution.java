@@ -28,7 +28,7 @@ class Solution {
 
         // dp[i][j] 表示 text1 的前 i 个字符 和 text2 的前 j 个字符 的最长公共子序列长度。
         int[][] dp = new int[len1+1][len2+1];
-
+        // 鉴于dp定义，所以遍历从1开始 前0个字符没有意义
         for(int i = 1; i <= len1; i++){
             for(int j = 1; j <= len2; j++){
                 // 说明这个字母可以作为LCS中的一个元素

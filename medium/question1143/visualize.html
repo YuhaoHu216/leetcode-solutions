@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LCS 动态规划可视化 · LeetCode 1143</title>
+<style>
+:root{
+  --bg:#eef1f7; --card:#ffffff; --line:#dde3ef; --text:#1f2937; --muted:#6b7280;
+  --primary:#4f6ef7; --green:#16a34a; --green-bg:#dcfce7;
+  --amber:#f59e0b; --amber-bg:#fff7e6;
+  --blue:#2563eb; --blue-bg:#dbeafe;
+  --cyan:#0891b2; --cyan-bg:#cffafe;
+  --purple:#7c3aed; --purple-bg:#f3e8ff;
+  --mono:ui-monospace,"SF Mono",SFMono-Regular,Consolas,"Liberation Mono",Menlo,monospace;
+  --radius:12px;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;padding:22px;background:var(--bg);color:var(--text);
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+}
+h1{font-size:21px;margin:0 0 4px}
+.sub{margin:0 0 18px;color:var(--muted);font-size:13px}
+.sub code{font-family:var(--mono);background:#fff;padding:1px 6px;border-radius:5px;border:1px solid var(--line)}
+.layout{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(0,1fr);gap:16px;align-items:start}
+@media(max-width:1080px){.layout{grid-template-columns:1fr}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:0 1px 3px rgba(16,24,40,.05);padding:16px}
+.card h2{font-size:13px;margin:0 0 12px;color:var(--muted);font-weight:600;letter-spacing:.5px;text-transform:uppercase}
+
+/* ---------- 控制区 ---------- */
+.controls{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:16px}
+.field{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--muted)}
+.field input{
+  font-family:var(--mono);font-size:15px;width:130px;padding:7px 10px;
+  border:1px solid var(--line);border-radius:9px;background:#fbfcfe;color:var(--text);
+}
+.field input:focus{outline:2px solid var(--primary);outline-offset:-1px;background:#fff}
+button{
+  font-family:inherit;font-size:13px;padding:8px 13px;border-radius:9px;cursor:pointer;
+  border:1px solid var(--line);background:#fff;color:var(--text);transition:.15s;
+}
+button:hover:not(:disabled){border-color:var(--primary);color:var(--primary);background:#f8faff}
+button:disabled{opacity:.4;cursor:not-allowed}
+button.primary{background:var(--primary);border-color:var(--primary);color:#fff;min-width:92px}
+button.primary:hover:not(:disabled){background:#3f5be0;color:#fff}
+button.on{background:var(--green-bg);border-color:var(--green);color:var(--green)}
+.speed{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted)}
+.speed input{width:110px;accent-color:var(--primary)}
+.presets{display:flex;gap:6px;align-items:center;font-size:12px;color:var(--muted);flex-wrap:wrap;width:100%}
+.presets button{padding:5px 10px;font-size:12px;color:var(--muted)}
+
+/* ---------- 表格 ---------- */
+.board-wrap{overflow:auto;max-height:64vh;padding:4px}
+table.board{border-collapse:separate;border-spacing:3px;margin:0 auto}
+table.board th{font-weight:500}
+.hdr{
+  font-family:var(--mono);background:#eef2fb;border-radius:8px;padding:4px 6px;
+  min-width:48px;height:48px;color:#334155;transition:.15s;
+}
+.hdr .ch{display:block;font-size:15px;font-weight:600;line-height:1.1}
+.hdr .idx{display:block;font-size:10px;color:var(--muted);line-height:1.3}
+.hdr.corner{background:transparent;color:var(--muted);font-size:11px}
+.hdr.corner .ch{font-size:12px;font-weight:400}
+.hdr.axis{background:var(--amber-bg);box-shadow:inset 0 0 0 2px var(--amber);color:#92400e}
+.hdr.axis .idx{color:#b45309}
+.cell{
+  font-family:var(--mono);font-size:16px;text-align:center;vertical-align:middle;
+  width:48px;height:48px;border-radius:8px;background:#f6f8fc;color:#cbd5e1;
+  border:1px solid #e8edf7;transition:background .15s,box-shadow .15s;
+}
+.cell.edge{background:#f1f4fa;color:#94a3b8;border-style:dashed}
+.cell.filled{background:#fff;color:var(--text);border-color:var(--line)}
+.cell.filled.nonzero{background:#f0fdf4;color:#166534;border-color:#bbf7d0}
+.cell.cur{
+  background:var(--amber-bg)!important;color:#92400e!important;
+  box-shadow:inset 0 0 0 3px var(--amber);animation:pop .22s ease-out;
+}
+.cell.dep-diag{box-shadow:inset 0 0 0 2px var(--purple);background:var(--purple-bg);color:#5b21b6}
+.cell.dep-up{box-shadow:inset 0 0 0 2px var(--blue);background:var(--blue-bg);color:#1e40af}
+.cell.dep-left{box-shadow:inset 0 0 0 2px var(--cyan);background:var(--cyan-bg);color:#155e75}
+.cell.path{box-shadow:inset 0 0 0 2px var(--green)}
+.cell.path-char{background:var(--green-bg);color:var(--green);box-shadow:inset 0 0 0 3px var(--green);font-weight:700}
+@keyframes pop{from{transform:scale(.82)}to{transform:scale(1)}}
+
+.legend{display:flex;flex-wrap:wrap;gap:12px;margin-top:12px;font-size:12px;color:var(--muted)}
+.legend span{display:flex;align-items:center;gap:5px}
+.swatch{width:14px;height:14px;border-radius:4px;display:inline-block;border:1px solid var(--line)}
+
+/* ---------- 解说 ---------- */
+.narration{margin-top:14px}
+.nar-title{font-size:14px;font-weight:600;margin-bottom:8px}
+.nar-title code{font-family:var(--mono);background:#eef2fb;padding:2px 7px;border-radius:6px;color:var(--primary)}
+.nar-sub{font-size:13px;color:var(--muted);margin-bottom:10px}
+.nar-sub code{font-family:var(--mono);background:#f1f4fa;padding:1px 6px;border-radius:5px;color:#334155}
+.cmp{display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-family:var(--mono);font-size:14px;margin-bottom:10px}
+.tok{background:#f1f4fa;padding:5px 9px;border-radius:7px;color:#475569;font-size:12.5px}
+.char{font-style:normal;font-weight:700;font-size:17px;color:var(--text)}
+.char.eq{color:var(--green)}
+.char.ne{color:#dc2626}
+.op{font-weight:700;font-size:15px}
+.op.eq{color:var(--green)}
+.op.ne{color:#dc2626}
+.why{font-size:13.5px;line-height:1.85;background:#f8faff;border:1px solid var(--line);border-radius:10px;padding:11px 13px}
+.why ul{margin:6px 0;padding-left:20px}
+.why li{margin:3px 0}
+.why code{font-family:var(--mono);background:#eef2fb;padding:1px 6px;border-radius:5px;color:#334155}
+.why b{color:var(--primary);font-size:15px}
+.why .up{color:var(--blue);font-weight:600}
+.why .left{color:var(--cyan);font-weight:600}
+.why .diag{color:var(--purple);font-weight:600}
+.hint{font-size:12.5px;color:var(--muted);line-height:1.7}
+
+/* ---------- 代码 ---------- */
+pre.code{margin:0;font-family:var(--mono);font-size:12.5px;line-height:1.62;overflow:auto;max-height:46vh}
+.code-line{display:flex;gap:10px;padding:1px 6px;border-radius:5px;white-space:pre;transition:.15s}
+.code-line .ln{color:#b6c0d0;user-select:none;flex:none;text-align:right;width:22px}
+.code-line .lt{color:#334155}
+.code-line.hl{background:#fff7e6;box-shadow:inset 2px 0 0 var(--amber)}
+.code-line.hl .lt{color:#92400e;font-weight:600}
+.code-line.hl .ln{color:#c2861a}
+.result{margin-top:12px;font-size:13.5px;line-height:1.8}
+.result .big{font-size:26px;font-weight:700;color:var(--green);font-family:var(--mono)}
+.result .lcs{font-family:var(--mono);font-size:17px;color:var(--green);font-weight:700;letter-spacing:1px}
+kbd{font-family:var(--mono);font-size:11px;background:#f1f4fa;border:1px solid var(--line);border-bottom-width:2px;border-radius:4px;padding:1px 5px;color:#64748b}
+</style>
+</head>
+<body>
+
+<h1>最长公共子序列 · 动态规划可视化</h1>
+<p class="sub">LeetCode 1143 &nbsp;|&nbsp; <code>dp[i][j]</code> = text1 的<b>前 i 个字符</b> 与 text2 的<b>前 j 个字符</b> 的最长公共子序列长度 &nbsp;|&nbsp; 快捷键：<kbd>空格</kbd> 播放/暂停，<kbd>←</kbd> <kbd>→</kbd> 单步</p>
+
+<div class="controls">
+  <label class="field">text1 <input id="t1" value="abcde" maxlength="14" spellcheck="false"></label>
+  <label class="field">text2 <input id="t2" value="ace" maxlength="14" spellcheck="false"></label>
+  <button id="btnReset">重置</button>
+  <button class="primary" id="btnPlay">▶ 播放</button>
+  <button id="btnPrev">← 上一步</button>
+  <button id="btnNext">下一步 →</button>
+  <button id="btnEnd">跳到结果</button>
+  <button id="btnPath">显示 LCS 路径</button>
+  <label class="speed">速度 <input type="range" id="speed" min="70" max="1200" step="10" value="550"></label>
+  <div class="presets">
+    示例：
+    <button data-a="abcde" data-b="ace">abcde / ace</button>
+    <button data-a="abc" data-b="abc">abc / abc</button>
+    <button data-a="abc" data-b="def">abc / def</button>
+    <button data-a="bsbininm" data-b="jmjkbkjkv">bsbininm / jmjkbkjkv</button>
+  </div>
+</div>
+
+<div class="layout">
+  <div class="card">
+    <h2>dp 表（行 = text1 的前 i 个字符，列 = text2 的前 j 个字符）</h2>
+    <div class="board-wrap"><table class="board" id="board"></table></div>
+    <div class="legend">
+      <span><i class="swatch" style="background:var(--amber-bg);box-shadow:inset 0 0 0 2px var(--amber)"></i> 正在计算</span>
+      <span><i class="swatch" style="background:var(--purple-bg);box-shadow:inset 0 0 0 2px var(--purple)"></i> 斜上方（匹配）</span>
+      <span><i class="swatch" style="background:var(--blue-bg);box-shadow:inset 0 0 0 2px var(--blue)"></i> 上方</span>
+      <span><i class="swatch" style="background:var(--cyan-bg);box-shadow:inset 0 0 0 2px var(--cyan)"></i> 左方</span>
+      <span><i class="swatch" style="background:var(--green-bg);box-shadow:inset 0 0 0 2px var(--green)"></i> LCS 路径</span>
+      <span><i class="swatch" style="background:#f1f4fa;border-style:dashed"></i> 空串边界（恒为 0）</span>
+    </div>
+    <div class="narration" id="narration"></div>
+  </div>
+
+  <div class="card">
+    <h2>源代码（高亮 = 当前执行到的那一行）</h2>
+    <pre class="code" id="code"></pre>
+    <div class="result" id="result"></div>
+  </div>
+</div>
+
+<script>
+(function(){
+'use strict';
+
+/* ============ 原文件 Solution.java 的 23~46 行 ============ */
+var CODE_LINES = [
+  [23, 'class Solution {'],
+  [24, '    public int longestCommonSubsequence(String text1, String text2) {'],
+  [25, ''],
+  [26, '        int len1 = text1.length();'],
+  [27, '        int len2 = text2.length();'],
+  [28, ''],
+  [29, '        // dp[i][j] 表示 text1 的前 i 个字符 和 text2 的前 j 个字符 的最长公共子序列长度。'],
+  [30, '        int[][] dp = new int[len1+1][len2+1];'],
+  [31, ''],
+  [32, '        for(int i = 1; i <= len1; i++){'],
+  [33, '            for(int j = 1; j <= len2; j++){'],
+  [34, '                // 说明这个字母可以作为LCS中的一个元素'],
+  [35, '                if(text1.charAt(i-1) == text2.charAt(j-1)){'],
+  [36, '                    dp[i][j] = dp[i-1][j-1] + 1;'],
+  [37, '                }else{'],
+  [38, '                    // 说明要往回退取最大值'],
+  [39, '                    dp[i][j] = Math.max(dp[i-1][j],dp[i][j-1]);'],
+  [40, '                }'],
+  [41, '            }'],
+  [42, '        }'],
+  [43, ''],
+  [44, '        return dp[len1][len2];'],
+  [45, '    }'],
+  [46, '}']
+];
+var L_LOOP = 32, L_JLOOP = 33, L_IF = 35, L_THEN = 36, L_ELSE = 39, L_RETURN = 44;
+
+/* ============ 状态 ============ */
+var t1 = '', t2 = '', n = 0, m = 0;
+var steps = [], finalDp = [], stepIdx = [];
+var cells = [], headRows = [], headCols = [];
+var currentStep = -1, playing = false, timer = null, showPath = false, pathInfo = null;
+
+var $ = function(id){ return document.getElementById(id); };
+var esc = function(s){ return s.replace(/[&<>"']/g, function(c){
+  return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]; }); };
+var showChar = function(c){ return c === ' ' ? '␣' : c; };
+
+/* ============ 1. 按代码的顺序预先算出每一步 ============ */
+function build(){
+  n = t1.length; m = t2.length;
+  finalDp = [];
+  stepIdx = [];
+  for (var i = 0; i <= n; i++){
+    finalDp.push(new Array(m+1).fill(0));   // 第 0 行 / 第 0 列 = 空串边界，天生就是 0
+    stepIdx.push(new Array(m+1).fill(-1));
+  }
+  steps = [];
+  for (i = 1; i <= n; i++){                 // 与代码一致：i 从 1 开始
+    for (var j = 1; j <= m; j++){           // j 从 1 开始
+      var c1 = t1.charAt(i-1), c2 = t2.charAt(j-1);   // 长度 i → 下标 i-1
+      var eq = (c1 === c2);
+      var up = finalDp[i-1][j], left = finalDp[i][j-1], diag = finalDp[i-1][j-1];
+      var value = eq ? diag + 1 : Math.max(up, left);
+      finalDp[i][j] = value;
+      stepIdx[i][j] = steps.length;
+      steps.push({
+        i:i, j:j, c1:c1, c2:c2, eq:eq, value:value,
+        up:up, left:left, diag:diag,
+        deps: eq ? [{r:i-1, c:j-1, cls:'dep-diag'}]
+                 : [{r:i-1, c:j, cls:'dep-up'}, {r:i, c:j-1, cls:'dep-left'}],
+        hl: eq ? [L_JLOOP, L_IF, L_THEN] : [L_JLOOP, L_IF, L_ELSE]
+      });
+    }
+  }
+  pathInfo = computePath();
+}
+
+/* ============ 2. 建表格 ============ */
+function buildBoard(){
+  var table = $('board');
+  table.textContent = '';
+  cells = []; headRows = []; headCols = [];
+
+  var thead = document.createElement('thead');
+  var hr = document.createElement('tr');
+  var corner = document.createElement('th');
+  corner.className = 'hdr corner';
+  corner.innerHTML = '<span class="ch">i \\ j</span><span class="idx">长度</span>';
+  hr.appendChild(corner);
+
+  for (var j = 0; j <= m; j++){
+    var th = document.createElement('th');
+    th.className = 'hdr col';
+    th.innerHTML = '<span class="ch">' + (j === 0 ? 'ε' : showChar(esc(t2.charAt(j-1)))) +
+                   '</span><span class="idx">j=' + j + '</span>';
+    hr.appendChild(th);
+    headCols[j] = th;
+  }
+  thead.appendChild(hr);
+  table.appendChild(thead);
+
+  var tbody = document.createElement('tbody');
+  for (var i = 0; i <= n; i++){
+    var tr = document.createElement('tr');
+    var rh = document.createElement('th');
+    rh.className = 'hdr row';
+    rh.innerHTML = '<span class="ch">' + (i === 0 ? 'ε' : showChar(esc(t1.charAt(i-1)))) +
+                   '</span><span class="idx">i=' + i + '</span>';
+    tr.appendChild(rh);
+    headRows[i] = rh;
+
+    cells[i] = [];
+    for (j = 0; j <= m; j++){
+      var td = document.createElement('td');
+      td.className = 'cell' + ((i === 0 || j === 0) ? ' edge' : '');
+      tr.appendChild(td);
+      cells[i][j] = td;
+    }
+    tbody.appendChild(tr);
+  }
+  table.appendChild(tbody);
+}
+
+/* ============ 3. 回溯出 LCS 路径 ============ */
+function computePath(){
+  var i = n, j = m, chars = [], charCells = [], walkCells = [];
+  while (i > 0 && j > 0){
+    if (t1.charAt(i-1) === t2.charAt(j-1)){
+      charCells.push([i, j]); chars.push(t1.charAt(i-1)); i--; j--;
+    } else if (finalDp[i-1][j] >= finalDp[i][j-1]){
+      walkCells.push([i, j]); i--;
+    } else {
+      walkCells.push([i, j]); j--;
+    }
+  }
+  return { str: chars.reverse().join(''), charCells: charCells, walkCells: walkCells };
+}
+
+/* ============ 4. 渲染 ============ */
+function render(){
+  var i, j, k, s = currentStep >= 0 ? steps[currentStep] : null;
+
+  for (i = 0; i <= n; i++){
+    headRows[i].classList.remove('axis');
+    for (j = 0; j <= m; j++){
+      headCols[j].classList.remove('axis');
+      var td = cells[i][j];
+      td.className = 'cell' + ((i === 0 || j === 0) ? ' edge' : '');
+      if (s && i === s.i) headRows[i].classList.add('axis');
+      if (s && j === s.j) headCols[j].classList.add('axis');
+      k = stepIdx[i][j];
+      if (k >= 0 && k <= currentStep){
+        td.textContent = finalDp[i][j];
+        td.classList.add('filled');
+        if (finalDp[i][j] > 0) td.classList.add('nonzero');
+      } else {
+        td.textContent = '';
+      }
+    }
+  }
+
+  if (showPath && pathInfo){
+    var add = function(list, cls){
+      for (var t = 0; t < list.length; t++){
+        cells[list[t][0]][list[t][1]].classList.add(cls);
+      }
+    };
+    add(pathInfo.walkCells, 'path');
+    add(pathInfo.charCells, 'path-char');
+  }
+
+  if (s){
+    cells[s.i][s.j].classList.add('cur');
+    for (k = 0; k < s.deps.length; k++){
+      cells[s.deps[k].r][s.deps[k].c].classList.add(s.deps[k].cls);
+    }
+  }
+
+  highlightCode(s);
+  narrate(s);
+  renderResult();
+  syncButtons();
+}
+
+function highlightCode(s){
+  var lines = document.querySelectorAll('.code-line');
+  var want = {};
+  if (s){ for (var t = 0; t < s.hl.length; t++) want[s.hl[t]] = true; }
+  if (currentStep < 0) want[L_LOOP] = true;
+  if (currentStep >= steps.length - 1 && steps.length > 0) want[L_RETURN] = true;
+  for (var i = 0; i < lines.length; i++){
+    lines[i].classList.toggle('hl', !!want[+lines[i].dataset.n]);
+  }
+}
+
+/* ============ 5. 中文解说 ============ */
+function narrate(s){
+  var box = $('narration');
+  if (!s){
+    box.innerHTML =
+      '<div class="nar-title">准备开始 · <code>dp</code> 数组已开好</div>' +
+      '<div class="hint">' +
+      '<code>new int[' + (n+1) + '][' + (m+1) + ']</code> 多出来的第 0 行、第 0 列代表<b>空串</b>，' +
+      'Java 默认初始化为 0，正好就是「空串与任何串的公共子序列长度 = 0」，所以不需要手动填。<br>' +
+      '循环的 i、j 从 1 开始，因为 <code>dp[i][j]</code> 里的 i、j 是<b>长度</b>不是下标，' +
+      '第 0 行/列要留给边界，真正要算的格子是 <code>dp[1..' + n + '][1..' + m + ']</code>。' +
+      '</div>';
+    return;
+  }
+
+  var pre1 = t1.slice(0, s.i), pre2 = t2.slice(0, s.j);
+  var html = '<div class="nar-title">第 ' + (currentStep+1) + ' / ' + steps.length +
+             ' 步 · 正在计算 <code>dp[' + s.i + '][' + s.j + ']</code></div>';
+  html += '<div class="nar-sub">text1 的<b>前 ' + s.i + ' 个字符</b> = <code>"' + showChar(esc(pre1)) +
+          '"</code> &nbsp;⟷&nbsp; text2 的<b>前 ' + s.j + ' 个字符</b> = <code>"' + showChar(esc(pre2)) + '"</code></div>';
+
+  html += '<div class="cmp">' +
+          '<span class="tok">text1.charAt(' + s.i + '-1) → [' + (s.i-1) + ']</span>' +
+          '<em class="char ' + (s.eq ? 'eq' : 'ne') + '">' + showChar(esc(s.c1)) + '</em>' +
+          '<span class="op ' + (s.eq ? 'eq' : 'ne') + '">' + (s.eq ? '==' : '!=') + '</span>' +
+          '<em class="char ' + (s.eq ? 'eq' : 'ne') + '">' + showChar(esc(s.c2)) + '</em>' +
+          '<span class="tok">← [' + (s.j-1) + '] text2.charAt(' + s.j + '-1)</span>' +
+          '</div>';
+
+  if (s.eq){
+    html += '<div class="why">' +
+      '<b>相等</b> → 这两个字符可以同时作为公共子序列的结尾，所以把它接在「去掉这两个字符后的最优解」后面：<br>' +
+      '<span class="diag">dp[' + (s.i-1) + '][' + (s.j-1) + '] = ' + s.diag + '</span> + 1 = <b>' + s.value + '</b>' +
+      '<div class="hint" style="margin-top:8px">对应代码第 36 行：<code>dp[i][j] = dp[i-1][j-1] + 1;</code> —— 只看<b>斜上方</b>那一格。</div>' +
+      '</div>';
+  } else {
+    var better = s.up >= s.left ? '上' : '左';
+    html += '<div class="why">' +
+      '<b>不相等</b> → 这两个字符不可能同时进 LCS，只能丢掉其中一个，两条路都试一下取较大者：<br>' +
+      '<ul>' +
+      '<li>丢掉 text1 的 <b>' + showChar(esc(s.c1)) + '</b>（斜向上退一格）→ <span class="up">dp[' + (s.i-1) + '][' + s.j + '] = ' + s.up + '</span></li>' +
+      '<li>丢掉 text2 的 <b>' + showChar(esc(s.c2)) + '</b>（向左退一格）→ <span class="left">dp[' + s.i + '][' + (s.j-1) + '] = ' + s.left + '</span></li>' +
+      '</ul>' +
+      'max(' + s.up + ', ' + s.left + ') = <b>' + s.value + '</b>（走<b>' + better + '</b>边更优）' +
+      '<div class="hint" style="margin-top:8px">对应代码第 39 行：<code>dp[i][j] = Math.max(dp[i-1][j], dp[i][j-1]);</code><br>' +
+      '为什么不用管 <code>dp[i-1][j-1]</code>（两个都丢）？因为 LCS 长度随字符数单调不减，' +
+      '它一定 ≤ 上边和左边，早就被 max 覆盖了。</div>' +
+      '</div>';
+  }
+  box.innerHTML = html;
+}
+
+/* ============ 6. 结果面板 ============ */
+function renderResult(){
+  var box = $('result');
+  var done = steps.length > 0 && currentStep >= steps.length - 1;
+  var html = '';
+  if (n === 0 || m === 0){
+    html = '<div class="hint">有一个串是空的，答案直接是 0。</div>';
+  } else if (done){
+    html += '答案 <span class="big">' + finalDp[n][m] + '</span> ' +
+            '<span class="hint">（<code>return dp[' + n + '][' + m + ']</code>，即右下角那一格）</span><br>';
+    if (showPath && pathInfo.str){
+      html += 'LCS = <span class="lcs">' + showChar(esc(pathInfo.str)) + '</span>';
+    }
+  } else {
+    html = '<div class="hint">动画还没走完。点「跳到结果」可以直接看最终答案。</div>';
+  }
+  html += '<div class="hint" style="margin-top:10px">共 ' + steps.length + ' 步 = ' + n + ' × ' + m +
+          '；时间复杂度 O(len1×len2)，空间复杂度 O(len1×len2)。</div>';
+  box.innerHTML = html;
+}
+
+/* ============ 7. 控制 ============ */
+function syncButtons(){
+  var last = steps.length - 1;
+  $('btnPrev').disabled = currentStep < 0 || steps.length === 0;
+  $('btnNext').disabled = currentStep >= last;
+  $('btnEnd').disabled = currentStep >= last;
+  $('btnPlay').textContent = playing ? '⏸ 暂停' : '▶ 播放';
+}
+
+function step(delta){
+  var last = steps.length - 1;
+  currentStep = Math.max(-1, Math.min(last, currentStep + delta));
+  render();
+}
+
+function jumpTo(k){
+  currentStep = Math.max(-1, Math.min(steps.length - 1, k));
+  render();
+}
+
+function play(){
+  if (steps.length === 0) return;
+  if (currentStep >= steps.length - 1) currentStep = -1;
+  playing = true; syncButtons(); tick();
+}
+function tick(){
+  clearTimeout(timer);
+  if (!playing) return;
+  if (currentStep >= steps.length - 1){ pause(); return; }
+  step(1);
+  timer = setTimeout(tick, +$('speed').value);
+}
+function pause(){ playing = false; clearTimeout(timer); syncButtons(); }
+
+function rebuild(keepStep){
+  t1 = $('t1').value; t2 = $('t2').value;
+  pause();
+  build(); buildBoard();
+  showPath = false;
+  $('btnPath').classList.remove('on');
+  currentStep = keepStep ? Math.min(currentStep, steps.length - 1) : -1;
+  render();
+}
+
+/* ============ 8. 初始化 ============ */
+(function initCode(){
+  var pre = $('code');
+  CODE_LINES.forEach(function(line){
+    var d = document.createElement('div');
+    d.className = 'code-line';
+    d.dataset.n = line[0];
+    var num = document.createElement('span'); num.className = 'ln'; num.textContent = line[0];
+    var txt = document.createElement('span'); txt.className = 'lt'; txt.textContent = line[1];
+    d.appendChild(num); d.appendChild(txt);
+    pre.appendChild(d);
+  });
+})();
+
+$('btnNext').onclick  = function(){ pause(); step(1); };
+$('btnPrev').onclick  = function(){ pause(); step(-1); };
+$('btnEnd').onclick   = function(){ pause(); jumpTo(steps.length - 1); };
+$('btnReset').onclick = function(){ pause(); currentStep = -1; render(); };
+$('btnPlay').onclick  = function(){ if (playing) pause(); else play(); };
+$('btnPath').onclick  = function(){
+  showPath = !showPath;
+  this.classList.toggle('on', showPath);
+  if (showPath){ pause(); jumpTo(steps.length - 1); } else { render(); }
+};
+$('t1').addEventListener('input', function(){ rebuild(false); });
+$('t2').addEventListener('input', function(){ rebuild(false); });
+document.querySelectorAll('.presets button').forEach(function(b){
+  b.onclick = function(){
+    $('t1').value = b.dataset.a; $('t2').value = b.dataset.b;
+    rebuild(false);
+  };
+});
+document.addEventListener('keydown', function(e){
+  if (e.target.tagName === 'INPUT') return;
+  if (e.code === 'Space'){ e.preventDefault(); if (playing) pause(); else play(); }
+  else if (e.code === 'ArrowRight'){ e.preventDefault(); pause(); step(1); }
+  else if (e.code === 'ArrowLeft'){ e.preventDefault(); pause(); step(-1); }
+});
+
+rebuild(false);
+})();
+</script>
+</body>
+</html>
