@@ -25,7 +25,7 @@ class Solution {
 
             if(len > maxLen){
                 maxLen = len;
-                start = i - (maxLen-1) / 2;
+                start = i - (maxLen-1) / 2; // 注意 start 的算法
             }
         }
 
@@ -37,6 +37,7 @@ class Solution {
             left--;
             right++;
         }
+        // 因为逻辑是先移动再比较，所以最终长度需要减一
         return right-left-1;
     }
 }
