@@ -14,6 +14,14 @@ package question136;
  * 输入：nums = [1]
  * 输出：1
  */
+
+/**
+ * nums = [4, 1, 2, 1, 2]
+ *   → 4 ^ 1 ^ 2 ^ 1 ^ 2
+ *   → 4 ^ (1 ^ 1) ^ (2 ^ 2)      ← 结合律重新分组
+ *   → 4 ^ 0 ^ 0                   ← a ^ a = 0
+ *   → 4                           ← a ^ 0 = a
+ */
 class Solution {
     public int singleNumber(int[] nums) {
         // 异或运算
