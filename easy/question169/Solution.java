@@ -20,3 +20,23 @@ class Solution {
         return nums[nums.length / 2];
     }
 }
+
+// 投票算法
+//不同的元素两两抵消，相同元素互相抱团；多数元素票多，抵消到最后必然存活。
+class Solution2 {
+    public int majorityElement(int[] nums) {
+        int cnt = 1;
+        int cur = nums[0];
+        for (int i = 1; i < nums.length; i++) {
+            if (nums[i] == cur) cnt++;
+            else {
+                cnt--;
+                if (cnt == 0) {
+                    cur = nums[i];
+                    cnt = 1;
+                }
+            }
+        }
+        return cur;
+    }
+}
