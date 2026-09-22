@@ -40,6 +40,15 @@ class Solution {
     }
 }
 
+
+//滑动窗口 + HashMap 记录每个字符最后出现的位置，右指针不断扩张，遇到重复字符时让左指针跳到「该字符上次出现位置 + 1」（并用 Math.max 防止左指针回退），窗口长度取最大值。
+//
+//  补充两个关键点：
+//  - map 存的是「字符 → 上一次出现的下标」，所以查重和定位一步到位，O(n) 时间。
+//  - Math.max(left, map.get(c) + 1) 是必需的回退保护：像 abba 这种，处理第二个 b 时左指针到 2，之后遇到末尾 a 时若直接赋值为 map.get('a')+1 = 1
+//  就会倒退，导致把已排除的字符重新算进窗口。
+//  时间复杂度：O(n)
+//  空间复杂度：O(1) 因为字符不会重复
 class Solution2 {
     // HashMap O(n)解法
     public int lengthOfLongestSubstring(String s) {
