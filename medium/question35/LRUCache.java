@@ -17,6 +17,7 @@ import java.util.Map;
  * [[2], [1, 1], [2, 2], [1], [3, 3], [2], [4, 4], [1], [3], [4]]
  * 输出
  * [null, null, null, 1, null, -1, null, -1, 3, 4]
+ *
  */
 class LRUCache {
     // 底层是一个节点为键值对双向链表,最新操作过的数就排在链表最前面.对元素的put和remove链表和map都要同步修改
