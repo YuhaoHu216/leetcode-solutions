@@ -15,6 +15,8 @@ import java.util.Set;
  * 解释: 因为无重复字符的最长子串是 "abc"，所以其长度为 3。
  * tags:哈希表,滑动窗口
  */
+// time O(n) 因为while总执行不会超过n次，还是线性的
+// space O(min(n,k)) k 为字符集大小 Java的 char 有65536种取值
 class Solution {
     public int lengthOfLongestSubstring(String s) {
         Set<Character> set = new HashSet<>();
