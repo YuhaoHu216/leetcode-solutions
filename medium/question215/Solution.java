@@ -20,8 +20,16 @@ import java.util.Random;
  *
  */
 // 快速选择
-// 注意获取随机数的语法
+// 从原数组中取一个随机数
+// time 平均 O(n),最坏 O(n^2)
+// 空间复杂度 O(n)
 class Solution {
+    /**
+     * 这就把问题从"我需要知道答案的值"变成了"我只需要知道答案的排名落在哪个区间"。而排名区间是由块的大小直接给出的——不需要排序，不需要猜。
+     * 打个比方：找班里第 3 高的人。你随便拉一个同学当标尺，让他站最前面，比他高的往前站、矮的往后站。数一下前面有几个人，你就知道这个同学是第几高。如果前面少于 3 个，第 3
+     * 高就一定在后面那堆人里，而且他在后面那堆里的排名你也算得出来。
+     * 你从头到尾都不知道第 3 高是谁，但你每一步都在逼近他。
+     */
         private int quickSelect(List<Integer> nums, int k) {
             // 随机选择基准数
             Random rand = new Random();
@@ -60,6 +68,8 @@ class Solution {
 }
 
 // 用小顶堆（现成数据结构）
+// time O(nlogk) 每次迭代的代价是 O(log k)
+// space O(k) 堆里始终只有k个元素
 class Solution2 {
     public int findKthLargest(int[] nums, int k) {
         // 小顶堆
