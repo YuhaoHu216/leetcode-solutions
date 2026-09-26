@@ -26,33 +26,45 @@ public class QuickSort {
     }
 
     // 快速排序
-    private static void quickSort(int[] arr, int left, int right) {
+    // 选一个基准值（pivot），用双指针把数组分成「比它小」和「比它大」两部分，再把基准放到分界点上，然后对左右两段递归重复这个过程。
+    // time 平均 (nlogn) 最坏 O(n^2)
+    // space 平均 (logn) 最坏 O(n)
+    private  static void quickSort(int[] arr, int left, int right) {
         if (left >= right) {
             return;
         }
 
-        int pivot = arr[left];
-        int i = left;
-        int j = right;
-        while (i < j) {
-            // 先从右往左查找比pivot小的数
-            while (i < j && pivot <= arr[j]) {
-                j--;
-            }
-            // 再从左往右查找比pivot大的数
-            while (i < j && pivot >= arr[i]) {
+        // 随机选择 pivot
+        Random r = new Random();
+        int random = r.nextInt(right - left + 1) + left;
+        int pivot = arr[random];
+
+        // 三路快排
+        int lt = left;      // < pivot 区域的右边界
+        int i = left;       // 当前遍历位置
+        int gt = right;     // > pivot 区域的左边界
+
+        while (i <= gt) {
+            if (arr[i] < pivot) {
+                swap(arr, lt, i);
+                lt++;
                 i++;
-            }
-            if (i < j) {
-                swap(arr, i, j);
+            } else if (arr[i] > pivot) {
+                swap(arr, i, gt);
+                gt--;
+            } else {
+                // arr[i] == pivot
+                i++;
             }
         }
 
-        swap(arr, left, i);
+        // 此时：
+        // [left, lt - 1] < pivot
+        // [lt, gt]       == pivot
+        // [gt + 1, right] > pivot
 
-        quickSort(arr, left, i - 1);
-        quickSort(arr, i + 1, right);
-
+        quickSort(arr, left, lt - 1);
+        quickSort(arr, gt + 1, right);
     }
 
     private static void swap(int[] arr, int i, int j) {
