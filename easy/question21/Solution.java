@@ -3,9 +3,10 @@ package question21;
 /**
  * 21.合并两个有序链表
  * 将两个升序链表合并为一个新的 升序 链表并返回。新链表是通过拼接给定的两个链表的所有节点组成的。
- *
  */
 // 迭代做法
+// time O(m+n) 两个链表各遍历一次
+// space O(1) 只用了两个节点
 class Solution {
     public ListNode mergeTwoLists(ListNode list1, ListNode list2) {
         ListNode first = new ListNode(-1);
@@ -28,6 +29,8 @@ class Solution {
 }
 
 // 递归做法
+// time O(m+n)
+// space O(m+n)
 class Solution2 {
     public ListNode mergeTwoLists(ListNode l1, ListNode l2) {
         if (l1 == null) {
