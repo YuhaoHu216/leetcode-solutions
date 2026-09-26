@@ -18,6 +18,9 @@ import java.util.List;
  * 不同的三元组是 [-1,0,1] 和 [-1,-1,2] 。
  * 注意，输出的顺序和三元组的顺序并不重要。
  * tag:双指针
+ *
+ * time O(n^2)
+ * space O(log n)
  */
 class Solution {
     public List<List<Integer>> threeSum(int[] nums) {
@@ -25,7 +28,7 @@ class Solution {
         // 存在条件满足的三个数后，双指针的移动要去重，注意把三个数变为集合的语法
 
         List<List<Integer>> result = new ArrayList<>();
-        // 数组元素是基本类型时:双轴快速排序 引用类型:TimSort(基于归并和插入排序)
+        // 数组元素是基本类型时:双轴快速排序 引用类型:TimSort(基于归并和插入排序) 时间复杂度 O(nlogn)
         Arrays.sort(nums);
 
         // 因为三元组不能重复,所以要避免之前的数参与后面的组合,这里的length-2是一个考量
@@ -33,6 +36,7 @@ class Solution {
             // 去除重复的数(重复数只判定第一个)
             if (i > 0 && nums[i] == nums[i - 1])
                 continue;
+            if(nums[i] > 0) continue; // 剪枝操作，如果排序之后的第一个数都是正数那么一定不可能和为0
             // left = i + 1也是一个去重的考量
             int left = i + 1;
             int right = nums.length - 1; // right 要定义在for里面，每一个for是一个新right

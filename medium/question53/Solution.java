@@ -1,4 +1,4 @@
-package question13;
+package question53;
 
 /**
  * 53.最大子数组和
@@ -9,6 +9,9 @@ package question13;
  * 输出：6
  * 解释：连续子数组 [4,-1,2,1] 的和最大，为 6 。
  *
+ * time O(n)
+ * space O(1) 只用了两个int变量 与输入规模无关
+ *
  */
 class Solution {
     public int maxSubArray(int[] nums) {
@@ -18,7 +21,7 @@ class Solution {
          */
         // 如果初始化为第一个数,那么遍历的时候就要从第二个数开始
         int max = Integer.MIN_VALUE;
-        int currentMaxSum = 0;
+        int currentMaxSum = 0;  // 注意这里因为curMax会进行计算，如果定为MiN_VALUE会溢出
         for (int num : nums) {
             /*
              对于每一个元素 nums[i]，有两种情况：
