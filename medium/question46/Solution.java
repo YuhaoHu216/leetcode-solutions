@@ -22,8 +22,12 @@ import java.util.Scanner;
  * 3
  * 1 2 3
  * 输出：所有可能的全排列，例如：[[1, 2, 3], [1, 3, 2], [2, 1, 3], [2, 3, 1], [3, 1, 2], [3, 2, 1]]
+ *
+ * time  O(n*n!)
+ * space O(n) 结果集另算O(n*n!)
  */
 class Solution {
+    // 全排列不需要传index，因为排列的下一个数可能是后面任意的一个，用visited来作限制
     public List<List<Integer>> permute(int[] nums) {
 
         List<List<Integer>> result = new ArrayList<>();
