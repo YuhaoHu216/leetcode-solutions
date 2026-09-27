@@ -1,7 +1,7 @@
-package question66;
+package question33;
 
 /**
- * 33. 搜索旋转排序数组
+ * 33.搜索旋转排序数组
  * 整数数组 nums 按升序排列，数组中的值 互不相同 。
  * 在传递给函数之前，nums 在预先未知的某个下标 k（0 <= k < nums.length）上进行了 向左旋转，使数组变为 [nums[k], nums[k+1], ..., nums[n-1], nums[0], nums[1], ..., nums[k-1]]（下标 从 0 开始 计数）。例如， [0,1,2,4,5,6,7] 下标 3 上向左旋转后可能变为 [4,5,6,7,0,1,2] 。
  * 给你 旋转后 的数组 nums 和一个整数 target ，如果 nums 中存在这个目标值 target ，则返回它的下标，否则返回 -1 。
@@ -15,9 +15,12 @@ package question66;
  * 示例 3：
  * 输入：nums = [1], target = 0
  * 输出：-1
+ *
+ * time O(log n)
+ * space O(1)
  */
 class Solution {
-    // 核心原理: 二分查找 先确定数组哪边有序 然后确定目标数在那边 最后更新left和right
+    // 核心原理: 二分查找 先确定数组哪边有序 然后确定目标数在哪边 最后更新left和right
     public int search(int[] nums, int target) {
 
         int left = 0;
@@ -29,7 +32,7 @@ class Solution {
 
             if (nums[mid] == target) return mid;
 
-            // 左半边有序
+            // 左半边有序 （注意这里必须是<=,否则会漏[3,1] 1 这类情况）
             if(nums[left] <= nums[mid]){
                 // 左半边有序并且目标数在左半边
                 if(nums[left] <= target && target < nums[mid]){
