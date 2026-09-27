@@ -6,6 +6,9 @@ package question88;
  * 请你 合并 nums2 到 nums1 中，使合并后的数组同样按 非递减顺序 排列。
  * 注意：最终，合并后数组不应由函数返回，而是存储在数组 nums1 中。
  * 为了应对这种情况，nums1 的初始长度为 m + n，其中前 m 个元素表示应合并的元素，后 n 个元素为 0 ，应忽略。nums2 的长度为 n 。
+ *
+ * time O(m+n)
+ * space O(1)
  */
 class Solution {
     public void merge(int[] nums1, int m, int[] nums2, int n) {
@@ -16,6 +19,7 @@ class Solution {
 
         // 当 nums2 还有要合并的数时
         while(p2 >=0){
+            // 这里p1>=0是作为守卫，因为nums1完全可能先消耗完，这时就让nums2直接填进去
             if(p1 >=0 && nums1[p1] > nums2[p2]){
                 nums1[tail--] = nums1[p1--];
             }else{
