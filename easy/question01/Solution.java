@@ -13,9 +13,11 @@ import java.util.HashMap;
  * 解释：因为 nums[0] + nums[1] == 9 ，返回 [0, 1] 。
  * tags: 哈希表
  *
+ * time 平均O(n) 最坏 O(n^2)
+ * space O(n)
  */
 public class Solution {
-    public int[] towSum(int [] nums,int target){
+    public int[] twoSum(int [] nums,int target){
         // 哈希表法
         HashMap<Integer ,Integer> hashMap = new HashMap<>();
         for(int i = 0;i < nums.length; i++){
@@ -31,6 +33,6 @@ public class Solution {
     public static void main(String[] args){
         int[] nums = {2,7,11,15};
         int target = 9;
-        System.out.println(Arrays.toString(new Solution().towSum(nums, target)));
+        System.out.println(Arrays.toString(new Solution().twoSum(nums, target)));
     }
 }
