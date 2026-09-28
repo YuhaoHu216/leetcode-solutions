@@ -2,17 +2,12 @@ package question92;
 
 
 /**
- * 92. 反转链表 II
+ * 92.反转链表 II
  * 给你单链表的头指针 head 和两个整数 left 和 right ，其中 left <= right 。请你反转从位置 left 到位置 right 的链表节点，返回 反转后的链表 。
+ *
+ * time O(n)  需要遍历到 left 找到前置节点，再反转 right-left+1 个节点，最坏情况遍历整个链表
+ * space O(1) 只用了 dummy、preNode、startNode、pre、cur、next 几个指针变量，原地反转
  */
-class ListNode {
-    int val;
-    ListNode next;
-    ListNode() {}
-    ListNode(int val) { this.val = val; }
-    ListNode(int val, ListNode next) { this.val = val; this.next = next; }
-}
-
 class Solution {
     public ListNode reverseBetween(ListNode head, int left, int right) {
         // 创建dummy哨兵节点为了防止left等于1的时候head要做反转
@@ -51,4 +46,12 @@ class Solution {
     }
 
 
+}
+
+class ListNode {
+    int val;
+    ListNode next;
+    ListNode() {}
+    ListNode(int val) { this.val = val; }
+    ListNode(int val, ListNode next) { this.val = val; this.next = next; }
 }
