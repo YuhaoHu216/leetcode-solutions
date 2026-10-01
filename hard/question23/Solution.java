@@ -24,15 +24,9 @@ import java.util.PriorityQueue;
  * 输入：lists = [[]]
  * 输出：[]
  */
-class ListNode {
-     int val;
-     ListNode next;
-     ListNode() {}
-     ListNode(int val) { this.val = val; }
-     ListNode(int val, ListNode next) { this.val = val; this.next = next; }
- }
-
- // 归并解法
+ // 归并解法（分治：两两合并，共合并 log k 层）
+ // time O(N log k)  分治树高 log k，每一层把所有节点都过一遍；比一个个顺序合并的 O(N*k) 快
+ // space O(log k)  递归栈深度 log k；mergeTwoLists 只用了 dummy、tail 两个指针，不新建节点
 class Solution1 {
     public ListNode mergeKLists(ListNode[] lists) {
         if (lists == null || lists.length == 0) return null;
@@ -68,6 +62,8 @@ class Solution1 {
 }
 
 // 手写堆解法
+// time O(N log k)  先用 k 个链表头建堆 O(k log k)，之后每个节点入堆、出堆各一次，每次 O(log k)
+// space O(k)  堆数组只放 k 条链表各自当前的头节点，原节点被直接串起来不新建
 class Solution2 {
     public ListNode mergeKLists(ListNode[] lists) {
 
@@ -169,12 +165,14 @@ class Solution2 {
 }
 
  // api 解法优先队列 不推荐
+ // time O(N log k)  同手写堆：每个节点 offer、poll 各一次，每次 O(log k)
+ // space O(k)  队列里最多同时存 k 个节点
 class Solution3 {
     public ListNode mergeKLists(ListNode[] lists) {
 
         if(lists == null || lists.length == 0) return null;
 
-        // 定义优先队列,元素值由小到大排列
+        // 定义优先队列,按节点值构造小顶堆（小顶堆就是poll最小值的堆）
         PriorityQueue<ListNode> pq = new PriorityQueue<>(
                 (a,b) -> a.val - b.val
         );
@@ -198,4 +196,12 @@ class Solution3 {
         }
         return dummy.next;
     }
+}
+
+class ListNode {
+    int val;
+    ListNode next;
+    ListNode() {}
+    ListNode(int val) { this.val = val; }
+    ListNode(int val, ListNode next) { this.val = val; this.next = next; }
 }
