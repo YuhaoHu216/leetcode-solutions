@@ -13,7 +13,25 @@ import java.util.Set;
  * 输出：true
  * 解释：链表中有一个环，其尾部连接到第二个节点。
  */
-public class Solution {
+// time O(n)  无环时 fast 走到底就退出，迭代 n/2 次；有环时 slow 进环后最多走一圈就会被 fast 追上，两者走的步数都不超过 n
+// space O(1)  只用了 slow、fast 两个指针，跟链表长度无关
+class Solution {
+    public boolean hasCycle(ListNode head) {
+        ListNode slow = head;
+        ListNode fast = head;
+
+        while(fast != null && fast.next != null){
+            slow = slow.next;
+            fast = fast.next.next;
+            if(fast == slow ) return true;
+        }
+        return false;
+    }
+}
+
+// time O(n)  每个节点只访问一次，HashSet 的 contains/add 均摊 O(1)
+// space O(n)  最坏情况（无环）要把 n 个节点全部存进集合里
+class Solution2 {
     // 集合的方式效率太低 双指针效率高些
     public boolean hasCycle(ListNode head) {
         Set<ListNode> set = new HashSet<>();
@@ -26,26 +44,6 @@ public class Solution {
         }
         return false;
 
-    }
-}
-
-class Solution2 {
-    public boolean hasCycle(ListNode head) {
-        if (head == null || head.next == null) {
-            return false;
-        }
-        ListNode slow = head;
-        ListNode fast = head.next;
-        // 注意循环条件和不成环判断条件
-        while(fast != slow){
-            if(fast == null || fast.next == null){
-                return false;
-            }
-            slow = slow.next;
-            fast = fast.next.next;
-
-        }
-        return true;
     }
 }
 
