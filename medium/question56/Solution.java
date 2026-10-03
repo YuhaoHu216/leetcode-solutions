@@ -7,6 +7,8 @@ package question56;
  * 输出：[[1,6],[8,10],[15,18]]
  * 解释：区间 [1,3] 和 [2,6] 重叠, 将它们合并为 [1,6].
  *
+ * time O(n log n)  排序是主要开销；排好序后只需一次线性扫描合并，O(n) 被排序盖过
+ * space O(n)  结果列表最坏（区间全不重叠）存下全部 n 个区间，toArray 时还要再复制一份引用；Arrays.sort 对对象数组用 Timsort，最坏也要 O(n) 的临时空间
  */
 import java.util.ArrayList;
 import java.util.Arrays;
