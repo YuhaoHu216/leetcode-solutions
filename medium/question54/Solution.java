@@ -8,6 +8,9 @@ import java.util.List;
  * 给你一个 m 行 n 列的矩阵 matrix ，请按照 顺时针螺旋顺序 ，返回矩阵中的所有元素。
  *输入：matrix = [[1,2,3],[4,5,6],[7,8,9]]
  * 输出：[1,2,3,6,9,8,7,4,5]
+ *
+ * 时间复杂度：O(m*n) 矩阵中每个元素恰好被访问一次
+ * 空间复杂度：O(1) 只用了四个边界变量，不计返回结果数组占用的空间
  */
 public class Solution {
     public List<Integer> spiralOrder(int[][] matrix) {
