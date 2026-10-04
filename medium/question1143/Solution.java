@@ -19,6 +19,8 @@ package question1143;
  * 输出：0
  * 解释：两个字符串没有公共子序列，返回 0 。
  *
+ * time O(m*n) 两层循环填满 dp 表，每个状态由左上、上、左三个位置 O(1) 转移得到
+ * space O(m*n) 二维 dp 数组；每个状态只依赖上一行与本行左侧，可用一维滚动数组压缩到 O(min(m,n))
  */
 class Solution {
     public int longestCommonSubsequence(String text1, String text2) {
@@ -35,7 +37,7 @@ class Solution {
                 if(text1.charAt(i-1) == text2.charAt(j-1)){
                     dp[i][j] = dp[i-1][j-1] + 1;
                 }else{
-                    // 说明要往回退取最大值
+                    // 说明要往回退取最大值 即看丢掉哪个字符串的当前字母 序列更大
                     dp[i][j] = Math.max(dp[i-1][j],dp[i][j-1]);
                 }
             }
