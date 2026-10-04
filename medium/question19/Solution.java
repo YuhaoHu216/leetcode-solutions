@@ -3,6 +3,9 @@ package question19;
 /**
  * 19.删除链表的倒数第N个结点
  * 给你一个链表，删除链表的倒数第 n 个结点，并且返回链表的头结点。
+ *
+ * time O(L) 快指针 fast 从头走到尾一遍，一次遍历即可完成
+ * space O(1) 只用了 dummy、slow、fast 三个指针
  */
 class Solution {
     public ListNode removeNthFromEnd(ListNode head, int n) {
