@@ -10,6 +10,9 @@ package question42;
  * 示例 2：
  * 输入：height = [4,2,0,3,2,5]
  * 输出：9
+ *
+ * time O(n) 双指针从两端向中间收缩，left、right 各只走一遍，循环 n 次
+ * space O(1) 只用了 left、right、leftMax、rightMax、result 几个变量
  */
 class Solution {
     // 双指针解法
