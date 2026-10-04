@@ -1,7 +1,7 @@
 package question72;
 
 /**
- * 72. 编辑距离
+ * 72.编辑距离
  * 给你两个单词 word1 和 word2， 请返回将 word1 转换成 word2 所使用的最少操作数  。
  * 你可以对一个单词进行如下三种操作：
  * 插入一个字符
@@ -23,6 +23,9 @@ package question72;
  * enention -> exention (将 'n' 替换为 'x')
  * exention -> exection (将 'n' 替换为 'c')
  * exection -> execution (插入 'u')
+ *
+ * time O(m*n) 两层循环，每个 dp[i][j] 由左、上、左上三个位置 O(1) 转移得到
+ * space O(m*n) 二维 dp 数组；由于 dp[i][j] 只依赖上一行与本行左侧，可压缩成一维滚动数组 O(n)
  */
 class Solution {
     public int minDistance(String word1, String word2) {
@@ -42,7 +45,7 @@ class Solution {
             dp[0][i] = i;
         }
 
-        // 对于这个二位数组，往上是删除，往左是插入，往左上是替换
+        // 对于这个二维数组，往上是删除，往左是插入，往左上是替换
         for(int i = 1; i <= m; i++){
             for(int j = 1; j <=n; j++){
                 // 如果 word1[i-1] == word2[j-1]，说明这两个字符相等，不需要操作：
