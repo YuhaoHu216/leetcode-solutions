@@ -2,7 +2,6 @@ package question93;
 
 import java.util.ArrayList;
 import java.util.List;
-
 /**
  * 93.复原IP地址
  * 有效 IP 地址 正好由四个整数（每个整数位于 0 到 255 之间组成，且不能含有前导 0），整数之间用 '.' 分隔。
@@ -17,49 +16,48 @@ import java.util.List;
  * 示例 3：
  * 输入：s = "101023"
  * 输出：["1.0.10.23","1.0.102.3","10.1.0.23","10.10.2.3","101.0.2.3"]
+ *
+ * time O(3⁴ · n) 每层最多3个分支，深度4 最多81条路径 每条答案 substring是O(n) 因为剪枝 搜索树远小于81个叶子
+ * space O(1)
  */
 class Solution {
-
-    List<String> result = new ArrayList<>();
-
     public List<String> restoreIpAddresses(String s) {
-        backtrack(s, 0, 0, new StringBuilder());
-        return result;
+        List<String> res = new ArrayList<>();
+        backtrack(s, 0, 0, new StringBuilder(), res);
+        return res;
     }
 
-    private void backtrack(String s, int start, int segment, StringBuilder path){
-        // 剩余字符
-        int remain = s.length() - start;
-        // 剩余段数
-        int segmentsLeft = 4 - segment;
+    private void backtrack(String s, int start, int segment, StringBuilder path, List<String> res) {
+        int remain = s.length() - start;    // 还剩多少位没有切
+        int left = 4 - segment;             // 还需要切多少段
 
-        // 剪枝 字符太多 剩余字符不够剩余段数分
-        if(remain > segmentsLeft * 3 || remain < segmentsLeft){
+        // 剪枝：段数与字符数互相约束。当不够切或者切不够的情况剪枝
+        if (remain < left || remain > left * 3) {
+            return;
+        }
+        if (segment == 4) {
+            res.add(path.substring(0, path.length() - 1));   // 去掉末尾的 '.'
             return;
         }
 
-        // 找到4段
-        if(segment == 4){
-            result.add(path.substring(0, path.length()-1));
+        // 以 0 开头的段只有单个 "0" 合法，直接单独处理
+        if (s.charAt(start) == '0') {
+            int mark = path.length();
+            path.append('0').append('.');
+            backtrack(s, start + 1, segment + 1, path, res);
+            path.setLength(mark);
             return;
         }
-        // 当前段数字
+
         int num = 0;
-
-        for(int i = start; i < s.length() && i < start + 3; i++){
-
+        for (int i = start; i < s.length() && i < start + 3; i++) {
             num = num * 10 + (s.charAt(i) - '0');
+            if (num > 255) break;                            // 再取长一位只会更大
 
-            if(num > 255) break;
-
+            int mark = path.length();
             path.append(num).append('.');
-
-            backtrack(s, i + 1, segment + 1, path);
-
-            path.delete(path.length() - (i - start + 1) - 1, path.length());
-
-            // 前导0处理
-            if(num == 0) break;
+            backtrack(s, i + 1, segment + 1, path, res);
+            path.setLength(mark);                            // 撤销这一段
         }
     }
 }
