@@ -13,21 +13,13 @@ package question124;
  * 输入：root = [-10,9,20,null,null,15,7]
  * 输出：42
  * 解释：最优路径是 15 -> 20 -> 7 ，路径和为 15 + 20 + 7 = 42
+ *
+ * time O(n) 每个节点只被访问一次
+ * space O(h) 递归栈深度为树高 h，最坏（链状）O(n)，平均 O(log n)
  */
 
-class TreeNode {
-    int val;
-    TreeNode left;
-    TreeNode right;
-    TreeNode() {}
-    TreeNode(int val) { this.val = val; }
-    TreeNode(int val, TreeNode left, TreeNode right) {
-        this.val = val;
-        this.left = left;
-        this.right = right;
-    }
-}
-
+// 思路 后序遍历，每个节点返回它能给父节点提供的最大单边贡献值（当前值 + 左右子树中较大的正贡献），
+// 并用「当前值 + 左贡献 + 右贡献」更新全局最大路径和
 public class Solution {
     private int maxSum = Integer.MIN_VALUE;
 
@@ -54,6 +46,19 @@ public class Solution {
 
         // 当前节点能给父节点提供的最大贡献值
         return node.val + Math.max(leftGain, rightGain);
+    }
+}
+
+class TreeNode {
+    int val;
+    TreeNode left;
+    TreeNode right;
+    TreeNode() {}
+    TreeNode(int val) { this.val = val; }
+    TreeNode(int val, TreeNode left, TreeNode right) {
+        this.val = val;
+        this.left = left;
+        this.right = right;
     }
 }
 
