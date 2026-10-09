@@ -1,8 +1,11 @@
 package question82;
 
 /**
- * 82. 删除排序链表中的重复元素 II
+ * 82.删除排序链表中的重复元素 II
  * 给定一个已排序的链表的头 head ， 删除原始链表中所有重复数字的节点，只留下不同的数字 。返回 已排序的链表 。
+ *
+ * time O(n) 指针 head 只前进不回退，每个节点至多被跳过或访问一次，一次遍历即可完成
+ * space O(1) 只用了 dummy、pre、head 三个指针
  */
 class Solution {
     public ListNode deleteDuplicates(ListNode head) {
