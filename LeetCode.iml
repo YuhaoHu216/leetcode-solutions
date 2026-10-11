@@ -10,6 +10,7 @@
       <sourceFolder url="file://$MODULE_DIR$/PDD" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/DIDI" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/HENSHENG" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/Yotta" isTestSource="false" />
       <excludeFolder url="file://$MODULE_DIR$/.codegraph" />
     </content>
     <orderEntry type="inheritedJdk" />
