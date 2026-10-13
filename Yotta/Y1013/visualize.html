@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>工作任务 · 倒推递推可视化</title>
+<style>
+  :root{
+    --bg:#f5f6fa; --card:#fff; --ink:#1f2937; --muted:#6b7280;
+    --line:#e5e7eb; --blue:#2563eb; --blue-soft:#eff6ff;
+    --green:#16a34a; --green-soft:#f0fdf4;
+    --red:#dc2626; --red-soft:#fef2f2;
+    --amber:#d97706; --amber-soft:#fffbeb;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; padding:28px 16px 64px; background:var(--bg); color:var(--ink);
+    font:15px/1.65 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+  }
+  .wrap{max-width:1020px;margin:0 auto}
+  h1{font-size:23px;margin:0 0 6px}
+  .sub{color:var(--muted);margin:0 0 22px;font-size:14px}
+  .sub code{background:#eef2ff;color:#3730a3;padding:1px 6px;border-radius:6px}
+  .panel{
+    background:var(--card);border-radius:14px;padding:18px 20px;margin-bottom:18px;
+    box-shadow:0 1px 3px rgba(0,0,0,.06),0 10px 26px rgba(17,24,39,.05);
+  }
+  .panel h2{font-size:15px;margin:0 0 14px;color:var(--ink);display:flex;align-items:center;gap:8px}
+  .panel h2 .tag{font-size:11px;font-weight:600;color:var(--muted);background:#f3f4f6;padding:2px 8px;border-radius:999px}
+
+  /* ---------- 控制区 ---------- */
+  .controls{display:flex;flex-wrap:wrap;gap:14px 18px;align-items:flex-end}
+  .field{display:flex;flex-direction:column;gap:5px}
+  .field label{font-size:12px;color:var(--muted)}
+  input[type=text],input[type=number]{
+    font:14px/1.4 ui-monospace,Menlo,Consolas,monospace;padding:8px 10px;
+    border:1px solid var(--line);border-radius:9px;background:#fbfbfd;color:var(--ink);outline:none;
+  }
+  #wInput{width:420px}
+  input:focus{border-color:var(--blue);box-shadow:0 0 0 3px var(--blue-soft)}
+  .presets{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+  .btn{
+    border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:9px;
+    padding:7px 13px;font-size:13px;cursor:pointer;transition:.15s;
+  }
+  .btn:hover{border-color:#cbd5e1;background:#fafafa}
+  .btn.primary{background:var(--blue);border-color:var(--blue);color:#fff}
+  .btn.primary:hover{background:#1d4ed8}
+  .btn.ghost{background:transparent}
+  .btn:disabled{opacity:.45;cursor:not-allowed}
+
+  /* ---------- 数组可视化 ---------- */
+  .array{display:flex;gap:10px;overflow-x:auto;padding:26px 4px 12px;position:relative}
+  .cellwrap{display:flex;flex-direction:column;align-items:center;gap:6px;min-width:62px}
+  .cellwrap .arrow{height:16px;font-size:12px;color:transparent;line-height:1}
+  .cellwrap.current .arrow{color:var(--blue)}
+  .cellwrap .idx{font-size:11px;color:var(--muted);font-family:ui-monospace,monospace}
+  .cellwrap.current .idx{color:var(--blue);font-weight:700}
+  .cell{
+    width:62px;height:64px;border-radius:12px;border:2px solid var(--line);background:#fff;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    font-family:ui-monospace,monospace;font-weight:700;
+    transition:.18s;position:relative;color:var(--ink);
+  }
+  .cell .wv{font-size:20px;line-height:1;margin-top:-4px}
+  .cell .badge{
+    position:absolute;top:-9px;right:-9px;width:22px;height:22px;border-radius:999px;
+    display:flex;align-items:center;justify-content:center;font-size:12px;color:#fff;font-weight:700;
+  }
+  .cellwrap.current .cell{border-color:var(--blue);box-shadow:0 0 0 4px var(--blue-soft);transform:translateY(-3px)}
+  .cellwrap.take .cell{border-color:var(--green);background:var(--green-soft)}
+  .cellwrap.take .badge{background:var(--green)}
+  .cellwrap.skip .cell{border-color:#e2e5ea;background:#fafbfc;color:#9aa3af;border-style:dashed}
+  .cellwrap.skip .badge{background:#cbd5e1}
+  .cellwrap.pending .cell{color:#9aa3af}
+  .cell .coef{
+    position:absolute;bottom:4px;left:0;right:0;text-align:center;font-size:10px;
+    color:var(--amber);font-family:ui-monospace,monospace;font-weight:600;
+  }
+
+  /* ---------- 当前步骤 ---------- */
+  .stepgrid{display:grid;grid-template-columns:1.05fr .95fr;gap:16px}
+  @media(max-width:760px){.stepgrid{grid-template-columns:1fr}}
+  .bigv{display:flex;align-items:baseline;gap:10px;margin-bottom:14px}
+  .bigv .k{font-size:12px;color:var(--muted)}
+  .bigv .n{font:800 30px/1 ui-monospace,monospace;color:var(--blue)}
+  .formula{font:15px/2 ui-monospace,Menlo,Consolas,monospace;background:#fafbfc;border:1px solid var(--line);
+    border-radius:11px;padding:14px 16px;overflow-x:auto}
+  .formula .ln{white-space:nowrap}
+  .formula em{font-style:normal;color:var(--muted)}
+  .branch{display:flex;gap:10px;margin-top:12px}
+  .branch>div{flex:1;border-radius:11px;padding:11px 13px;border:1.5px solid var(--line);background:#fff;transition:.18s}
+  .branch .bt{font-size:12px;color:var(--muted);margin-bottom:6px}
+  .branch .bv{font:700 17px/1.3 ui-monospace,monospace}
+  .branch .bd{font-size:12px;color:var(--muted);margin-top:5px}
+  .branch .win{border-color:var(--green);background:var(--green-soft)}
+  .branch .win .bv{color:var(--green)}
+  .branch .lose{opacity:.72}
+  .explain{margin-top:14px;font-size:13.5px;color:#374151;background:var(--amber-soft);
+    border-left:3px solid var(--amber);border-radius:0 9px 9px 0;padding:10px 13px}
+  .explain b{color:#92400e}
+
+  /* ---------- 历史表 ---------- */
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th,td{padding:7px 9px;text-align:right;border-bottom:1px solid #f1f2f5;font-family:ui-monospace,monospace}
+  th{color:var(--muted);font-weight:600;font-size:12px;background:#fafbfc}
+  th:first-child,td:first-child{text-align:center}
+  td:last-child,th:last-child{text-align:center;font-family:inherit}
+  tr.now td{background:var(--blue-soft)}
+  .pill{display:inline-block;padding:1px 8px;border-radius:999px;font-size:11.5px;font-weight:600}
+  .pill.take{background:var(--green-soft);color:var(--green)}
+  .pill.skip{background:#f3f4f6;color:#6b7280}
+  .tblwrap{max-height:260px;overflow:auto;border:1px solid var(--line);border-radius:11px}
+
+  /* ---------- 结论 ---------- */
+  .result .expr{font:15px/2 ui-monospace,monospace;background:var(--green-soft);border:1px solid #bbf7d0;
+    color:#166534;border-radius:11px;padding:13px 16px;overflow-x:auto;white-space:nowrap}
+  .result .expr b{font-size:17px}
+  .chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+  .chip{border:1px solid var(--line);border-radius:9px;padding:6px 11px;font:13px ui-monospace,monospace;background:#fff}
+  .chip b{color:var(--green)}
+
+  /* ---------- 直觉 ---------- */
+  .intuition .two{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  @media(max-width:760px){.intuition .two{grid-template-columns:1fr}}
+  .icard{border:1px solid var(--line);border-radius:12px;padding:13px 15px;background:#fff}
+  .icard h3{margin:0 0 7px;font-size:14px}
+  .icard p{margin:0;font-size:13px;color:#4b5563}
+  .icard .m{font-family:ui-monospace,monospace;background:#fafbfc;border-radius:7px;padding:6px 9px;margin-top:9px;font-size:13px;display:inline-block}
+  .icard.k{border-color:#bbf7d0} .icard.k h3{color:var(--green)}
+  .icard.s{border-color:#e5e7eb} .icard.s h3{color:var(--muted)}
+  .note{font-size:13px;color:var(--muted);margin-top:14px;line-height:1.7}
+  .note b{color:#374151}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>工作任务 · 倒推递推可视化</h1>
+  <p class="sub">
+    从右往左扫一遍，<code>V = max(V, w[i] + c·V)</code>，答案就是 <code>V</code>。
+    下面把每一步、每个分支都摊开。
+  </p>
+
+  <!-- 控制 -->
+  <div class="panel">
+    <h2>① 输入 <span class="tag">可改，回车或点“重新开始”生效</span></h2>
+    <div class="controls">
+      <div class="field">
+        <label>衰变常数 c （0 &lt; c &lt; 1）</label>
+        <input type="number" id="cInput" value="0.5" min="0.0001" max="0.9999" step="0.05" style="width:150px">
+      </div>
+      <div class="field">
+        <label>任务分值 w（空格或逗号分隔）</label>
+        <input type="text" id="wInput" value="1 2 3">
+      </div>
+      <button class="btn primary" id="applyBtn">重新开始</button>
+    </div>
+    <div class="presets">
+      <button class="btn" data-c="0.5"  data-w="1 2 3">样例 → 3.50</button>
+      <button class="btn" data-c="0.5"  data-w="1 100 1">大分藏在中间</button>
+      <button class="btn" data-c="0.9"  data-w="1 2 3 4 5">c 很大，几乎全选</button>
+      <button class="btn" data-c="0.1"  data-w="1 2 3">c 很小，只挑最高分</button>
+      <button class="btn" data-c="0.5"  data-w="-1 -2 -3">全是负分 → 0.00</button>
+    </div>
+  </div>
+
+  <!-- 数组 -->
+  <div class="panel">
+    <h2>② 数组与当前指针 <span class="tag">扫描方向：右 ➜ 左</span></h2>
+    <div class="array" id="array"></div>
+  </div>
+
+  <!-- 当前步骤 -->
+  <div class="panel">
+    <h2>③ 当前这一步 <span class="tag">V = max( V , w[i] + c·V )</span></h2>
+    <div class="stepgrid">
+      <div>
+        <div class="bigv">
+          <span class="k">当前 V =</span><span class="n" id="vNow">0.00</span>
+          <span class="k" id="vHint"></span>
+        </div>
+        <div class="formula" id="formula"></div>
+      </div>
+      <div>
+        <div class="branch" id="branch"></div>
+      </div>
+    </div>
+    <div class="explain" id="explain"></div>
+  </div>
+
+  <!-- 播放控制 -->
+  <div class="panel">
+    <h2>④ 播放</h2>
+    <div class="controls">
+      <button class="btn" id="resetBtn">⏮ 归零</button>
+      <button class="btn" id="prevBtn">◀ 上一步</button>
+      <button class="btn primary" id="playBtn">▶ 自动播放</button>
+      <button class="btn" id="nextBtn">下一步 ▶</button>
+      <div class="field" style="margin-left:auto">
+        <label>速度 <span id="spdLabel">600ms</span></label>
+        <input type="range" id="speed" min="120" max="1400" step="60" value="600" style="width:170px">
+      </div>
+    </div>
+  </div>
+
+  <!-- 历史 -->
+  <div class="panel">
+    <h2>⑤ 逐步骤轨迹 <span class="tag">这就是整个算法</span></h2>
+    <div class="tblwrap">
+      <table>
+        <thead>
+          <tr>
+            <th>步骤</th><th>i</th><th>w[i]</th><th>V（旧）</th>
+            <th>跳过 → V</th><th>选它 → w+c·V</th><th>V（新）</th><th>决策</th>
+          </tr>
+        </thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- 结论 -->
+  <div class="panel result" id="resultPanel" style="display:none">
+    <h2>⑥ 扫完了，答案就在这 <span class="tag">并用正向定义验算一遍</span></h2>
+    <div class="expr" id="expr"></div>
+    <div class="chips" id="chips"></div>
+  </div>
+
+  <!-- 直觉 -->
+  <div class="panel intuition">
+    <h2>⑦ 为什么可以“倒着做”？</h2>
+    <div class="two">
+      <div class="icard s">
+        <h3>✗ 跳过 i</h3>
+        <p>跳过不消耗体力（只有“处理完”才 <code>p *= c</code>）。所以体力系数不变，后缀该怎么选还是怎么选。</p>
+        <div class="m">增量 = V</div>
+      </div>
+      <div class="icard k">
+        <h3>✓ 选 i</h3>
+        <p>先拿 <code>w[i]×1</code>；体力变成 c，于是后缀里<b>所有</b>任务的系数都被同一个 c 缩小 —— 整体缩放不改变“后缀里选哪些最优”，所以后缀的贡献就是 <code>c·V</code>。</p>
+        <div class="m">增量 = w[i] + c·V</div>
+      </div>
+    </div>
+    <p class="note">
+      正着做时，状态里必须记“<b>已经处理了几个</b>”，因为系数是 <code>c^t</code>；倒着做之所以能把状态维度消掉，
+      关键就在 <b>“跳过不衰减”</b>：后缀内部的结构与前面插不插任务、插几个无关，整体缩放一下就能递归。
+      <br>用样例验证：若跳过也会衰减，第 3 题的系数会变成 <code>0.25</code>，答案就不是 <code>3.5</code> 了 —— 所以这里确实不衰减。
+      <br>顺带一提：这个递推天然会跳过非正分值的任务（走“跳过”分支），也<b>不需要截断 c 的高次幂</b>，没有近似误差。
+    </p>
+  </div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  var state = { c: 0.5, w: [], steps: [], cur: -1, timer: null, playing: false };
+  var MAX = 40; // 数组太长不便于展示，超出只取前 40 个
+
+  var el = {
+    cInput: document.getElementById('cInput'),
+    wInput: document.getElementById('wInput'),
+    array: document.getElementById('array'),
+    vNow: document.getElementById('vNow'),
+    vHint: document.getElementById('vHint'),
+    formula: document.getElementById('formula'),
+    branch: document.getElementById('branch'),
+    explain: document.getElementById('explain'),
+    tbody: document.getElementById('tbody'),
+    resultPanel: document.getElementById('resultPanel'),
+    expr: document.getElementById('expr'),
+    chips: document.getElementById('chips'),
+    playBtn: document.getElementById('playBtn'),
+    nextBtn: document.getElementById('nextBtn'),
+    prevBtn: document.getElementById('prevBtn'),
+    resetBtn: document.getElementById('resetBtn'),
+    speed: document.getElementById('speed'),
+    spdLabel: document.getElementById('spdLabel')
+  };
+
+  function fmt(x){
+    if (Object.is(x, -0)) x = 0;
+    var r = Math.round(x * 1e6) / 1e6;
+    return String(r);
+  }
+  function f2(x){ return x.toFixed(2); }
+
+  // ---------- 核心：一次性算出所有步骤 ----------
+  function buildSteps(){
+    var c = state.c, w = state.w, steps = [], v = 0;
+    for (var i = w.length - 1; i >= 0; i--){
+      var vBefore = v;
+      var take = w[i] + c * v;      // 选它
+      var skip = vBefore;           // 跳过
+      var took = take > vBefore + 1e-12;
+      var vAfter = Math.max(vBefore, take);
+      steps.push({ i: i, wi: w[i], vBefore: vBefore, skip: skip, take: take, vAfter: vAfter, took: took });
+      v = vAfter;
+    }
+    state.steps = steps;
+    state.finalV = v;
+  }
+
+  function currentIndex(){
+    if (!state.w.length) return -1;
+    if (state.cur < 0) return state.w.length - 1;
+    return state.steps[state.cur].i;
+  }
+  function isFinished(){ return state.cur >= state.steps.length - 1; }
+
+  // 每个下标最终的决策（用于展示）
+  function decisionMap(){
+    var m = {};
+    state.steps.forEach(function(s){ m[s.i] = s.took; });
+    return m;
+  }
+
+  // ---------- 渲染 ----------
+  function render(){ renderArray(); renderStep(); renderHistory(); renderResult(); renderButtons(); }
+
+  function renderArray(){
+    var w = state.w, curIdx = currentIndex(), cur = state.cur;
+    var dm = decisionMap();
+    var finished = isFinished();
+
+    // 选中任务在最终态下标注系数 c^0, c^1, ...
+    var coef = {}, k = 0, sel = [];
+    for (var i = 0; i < w.length; i++){
+      if (dm[i]) { coef[i] = k++; sel.push(i); }
+    }
+
+    var html = '';
+    for (var j = 0; j < w.length; j++){
+      var cls = 'cellwrap';
+      var processed = cur >= 0 && j >= curIdx;
+      if (!processed) cls += ' pending';
+      else cls += dm[j] ? ' take' : ' skip';
+      if (j === curIdx) cls += ' current';
+
+      var badge = '';
+      if (processed && dm[j] !== undefined) {
+        badge = '<span class="badge">' + (dm[j] ? '✓' : '✗') + '</span>';
+      }
+      var coefHtml = (finished && dm[j]) ? '<span class="coef">×c^' + coef[j] + '</span>' : '';
+
+      html += '<div class="' + cls + '">'
+            +   '<div class="arrow">▼</div>'
+            +   '<div class="idx">i=' + j + '</div>'
+            +   '<div class="cell">' + w[j] + badge + coefHtml + '</div>'
+            + '</div>';
+    }
+    el.array.innerHTML = html;
+  }
+
+  function renderStep(){
+    var cur = state.cur;
+
+    if (cur < 0){
+      var startIdx = state.w.length - 1;
+      el.vNow.textContent = '0.00';
+      el.vHint.textContent = '（还没开始）';
+      el.formula.innerHTML =
+        '<div class="ln"><em>// 初始 V = 0，从最右边开始</em></div>' +
+        '<div class="ln">V = <b>0</b></div>' +
+        '<div class="ln"><em>// 下一个要看 i=' + startIdx + '，w = ' + state.w[startIdx] + '</em></div>';
+      el.branch.innerHTML =
+        '<div><div class="bt">点「下一步 ▶」开始</div><div class="bv">→</div>' +
+        '<div class="bd">每一步只是比较两个候选值，取大的</div></div>';
+      el.explain.innerHTML = '从右往左扫。<b>跳过</b>保留原 V，<b>选它</b>变成 <code>w[i] + c·V</code>。开始吧。';
+      return;
+    }
+
+    var s = state.steps[cur];
+    el.vNow.textContent = f2(s.vBefore);
+    el.vHint.textContent = '（处理 i=' + s.i + ' 之前）';
+
+    el.formula.innerHTML =
+      '<div class="ln">V = max( <em>V</em> , <em>w[i] + c·V</em> )</div>' +
+      '<div class="ln">&nbsp;&nbsp;= max( ' + fmt(s.vBefore) + ' , ' + s.wi + ' + ' + fmt(state.c) + '×' + fmt(s.vBefore) + ' )</div>' +
+      '<div class="ln">&nbsp;&nbsp;= max( ' + fmt(s.skip) + ' , ' + fmt(s.take) + ' )</div>' +
+      '<div class="ln">&nbsp;&nbsp;= <b>' + f2(s.vAfter) + '</b></div>';
+
+    el.branch.innerHTML =
+      '<div class="' + (s.took ? 'lose' : 'win') + '">' +
+        '<div class="bt">✗ 跳过 i=' + s.i + '（w=' + s.wi + '）</div>' +
+        '<div class="bv">' + fmt(s.skip) + '</div>' +
+        '<div class="bd">体力系数不变，后缀照旧</div>' +
+      '</div>' +
+      '<div class="' + (s.took ? 'win' : 'lose') + '">' +
+        '<div class="bt">✓ 选 i=' + s.i + '（w=' + s.wi + '）</div>' +
+        '<div class="bv">' + fmt(s.take) + '</div>' +
+        '<div class="bd">拿 w[i]，后缀整体 ×' + fmt(state.c) + '</div>' +
+      '</div>';
+
+    var dec = s.took
+      ? '<b>选它</b>：' + fmt(s.take) + ' &gt; ' + fmt(s.skip) + '，所以 V 更新为 ' + f2(s.vAfter) + '。'
+      : '<b>跳过</b>：' + fmt(s.take) + ' ≤ ' + fmt(s.skip) + '，选它反而更差，V 保持 ' + f2(s.vAfter) + '。';
+    el.explain.innerHTML = 'i=' + s.i + '，w=' + s.wi + '　→　' + dec;
+  }
+
+  function renderHistory(){
+    var html = '', cur = state.cur;
+    for (var t = 0; t < state.steps.length; t++){
+      var s = state.steps[t];
+      var isNow = (t === cur);
+      var shown = t <= cur;
+      html += '<tr class="' + (isNow ? 'now' : '') + '">'
+            +   '<td>' + (t + 1) + '</td>'
+            +   '<td>' + s.i + '</td>'
+            +   '<td>' + s.wi + '</td>'
+            +   '<td>' + (shown ? fmt(s.vBefore) : '·') + '</td>'
+            +   '<td>' + (shown ? fmt(s.skip) : '·') + '</td>'
+            +   '<td>' + (shown ? fmt(s.take) : '·') + '</td>'
+            +   '<td>' + (shown ? '<b>' + fmt(s.vAfter) + '</b>' : '·') + '</td>'
+            +   '<td>' + (shown ? (s.took ? '<span class="pill take">选 ✓</span>' : '<span class="pill skip">跳 ✗</span>') : '·') + '</td>'
+            + '</tr>';
+    }
+    el.tbody.innerHTML = html;
+
+    var now = el.tbody.querySelector('tr.now');
+    if (now && now.scrollIntoView) {
+      var wrap = el.tbody.parentElement;
+      var top = now.offsetTop - wrap.clientHeight / 2 + now.clientHeight / 2;
+      wrap.scrollTop = Math.max(0, top);
+    }
+  }
+
+  function renderResult(){
+    if (!isFinished()){
+      el.resultPanel.style.display = 'none';
+      return;
+    }
+    el.resultPanel.style.display = 'block';
+
+    var dm = decisionMap(), w = state.w, c = state.c;
+    var parts = [], chipsHtml = '', sel = [];
+    var p = 1; // 正向系数 c^0, c^1, ...
+    var sum = 0;
+    for (var i = 0; i < w.length; i++){
+      if (dm[i]){
+        parts.push(w[i] + '×' + (p === 1 ? '1' : fmt(p)));
+        chipsHtml += '<span class="chip">i=' + i + '　w=' + w[i] + '　×' + (p === 1 ? '1' : fmt(p)) +
+                     '　= <b>' + fmt(w[i] * p) + '</b></span>';
+        sum += w[i] * p;
+        sel.push(i);
+        p *= c;
+      }
+    }
+    if (!parts.length){
+      el.expr.innerHTML = '一个任务都不做 → <b>0.00</b>';
+    } else {
+      el.expr.innerHTML = parts.join(' + ') + ' = <b>' + f2(state.finalV) + '</b>';
+    }
+    el.chips.innerHTML = chipsHtml;
+  }
+
+  function renderButtons(){
+    var atStart = state.cur < 0, atEnd = isFinished();
+    el.prevBtn.disabled = atStart;
+    el.nextBtn.disabled = atEnd;
+    el.playBtn.textContent = state.playing ? '⏸ 暂停' : '▶ 自动播放';
+  }
+
+  // ---------- 交互 ----------
+  function stepForward(){
+    if (isFinished()) { pause(); return; }
+    state.cur++;
+    render();
+  }
+  function stepBack(){
+    if (state.cur < 0) return;
+    state.cur--;
+    render();
+  }
+  function pause(){
+    state.playing = false;
+    if (state.timer) { clearInterval(state.timer); state.timer = null; }
+    renderButtons();
+  }
+  function play(){
+    if (isFinished()) reset();
+    state.playing = true;
+    if (state.timer) clearInterval(state.timer);
+    state.timer = setInterval(function(){
+      if (isFinished()) { pause(); return; }
+      stepForward();
+    }, Number(el.speed.value));
+    renderButtons();
+  }
+  function reset(){
+    pause();
+    state.cur = -1;
+    render();
+  }
+
+  function apply(){
+    var c = parseFloat(el.cInput.value);
+    if (!(c > 0 && c < 1)) { alert('请让 0 < c < 1'); return; }
+    var raw = el.wInput.value.split(/[\s,，]+/).filter(function(s){ return s.length; });
+    var w = raw.map(Number).filter(function(x){ return !Number.isNaN(x); });
+    if (!w.length) { alert('请输入至少一个任务分值'); return; }
+    if (w.length > MAX) { w = w.slice(0, MAX); alert('为便于展示，只取前 ' + MAX + ' 个任务。'); }
+
+    state.c = c;
+    state.w = w;
+    pause();
+    buildSteps();
+    state.cur = -1;
+    render();
+  }
+
+  // ---------- 事件绑定 ----------
+  document.getElementById('applyBtn').addEventListener('click', apply);
+  el.wInput.addEventListener('keydown', function(e){ if (e.key === 'Enter') apply(); });
+  el.nextBtn.addEventListener('click', function(){ pause(); stepForward(); });
+  el.prevBtn.addEventListener('click', function(){ pause(); stepBack(); });
+  el.resetBtn.addEventListener('click', reset);
+  el.playBtn.addEventListener('click', function(){ state.playing ? pause() : play(); });
+  el.speed.addEventListener('input', function(){
+    el.spdLabel.textContent = el.speed.value + 'ms';
+    if (state.playing) play();
+  });
+  document.querySelectorAll('.presets .btn').forEach(function(b){
+    b.addEventListener('click', function(){
+      el.cInput.value = b.getAttribute('data-c');
+      el.wInput.value = b.getAttribute('data-w');
+      apply();
+    });
+  });
+  document.addEventListener('keydown', function(e){
+    if (e.target.tagName === 'INPUT') return;
+    if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); pause(); stepForward(); }
+    if (e.key === 'ArrowLeft') { e.preventDefault(); pause(); stepBack(); }
+  });
+
+  // 初始
+  apply();
+})();
+</script>
+</body>
+</html>
